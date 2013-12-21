@@ -29,7 +29,7 @@ public final class NameUtils {
             }
             builder.append(words[i].substring(1));
         }
-        return builder.toString();
+        return builder.toString().replaceAll("\\W", "");
     }
 
     public static String replaceFirstCharacterToLowerCase(String in) {
