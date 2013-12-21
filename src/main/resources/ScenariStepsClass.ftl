@@ -10,24 +10,24 @@ import org.jbehave.core.annotations.When;
 
 public class ${scenarioStepsClass.classNamePrefix}Steps extends ScenarioSteps {
 
-private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-<#list scenarioStepsClass.fieldsSteps as innerSteps>
-@Steps
-private ${innerSteps.className} ${innerSteps.fieldName};
+    <#list scenarioStepsClass.fieldsSteps as innerSteps>
+    @Steps
+    private ${innerSteps.className} ${innerSteps.fieldName};
 
-</#list>
-public ${scenarioStepsClass.classNamePrefix}Steps(Pages pages) {
-super(pages);
-}
-
-<#list scenarioStepsClass.scenarios as method>
-@When("${method.scenarioName}")
-public void ${method.methodName}() {
-    <#list method.stepMethods as step>
-    ${step.fieldName}.${step.methodName}();
     </#list>
-}
+    public ${scenarioStepsClass.classNamePrefix}Steps(Pages pages) {
+        super(pages);
+    }
 
-</#list>
+    <#list scenarioStepsClass.scenarios as method>
+    @When("${method.scenarioName}")
+    public void ${method.methodName}() {
+        <#list method.stepMethods as step>
+        ${step.fieldName}.${step.methodName}();
+        </#list>
+    }
+
+    </#list>
 }
