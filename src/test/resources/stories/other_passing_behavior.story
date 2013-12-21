@@ -1,4 +1,4 @@
-Scenario: A scenario that works
+Scenario: A scenario that works with parameters
 
 Given I have an implemented JBehave scenario
 And the scenario works

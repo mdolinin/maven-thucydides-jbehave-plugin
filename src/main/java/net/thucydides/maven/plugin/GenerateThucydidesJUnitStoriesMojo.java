@@ -23,6 +23,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import static net.thucydides.maven.plugin.utils.NameUtils.getClassNameFrom;
+
 /**
  * @goal generate-sources
  * @phase generate-sources
@@ -31,6 +33,7 @@ public class GenerateThucydidesJUnitStoriesMojo extends AbstractMojo {
 
     /**
      * Directory with story files
+     *
      * @parameter expression="${project.stories.directory}" default-value="${project.basedir}/src/test/resources/stories"
      * @required
      */
@@ -58,8 +61,8 @@ public class GenerateThucydidesJUnitStoriesMojo extends AbstractMojo {
     }
 
     private void findStoryFilesAndGenerateStubs(File storiesDir) throws MojoExecutionException {
-        if(storiesDir.exists() && storiesDir.isDirectory()){
-            for(File file : getFiles(storiesDir)) {
+        if (storiesDir.exists() && storiesDir.isDirectory()) {
+            for (File file : getFiles(storiesDir)) {
                 if (file.isFile() && getExtension(file.getPath()).equals("story")) {
                     generateStubFromStoryFile(file);
                 } else if (file.isDirectory()) {
@@ -70,9 +73,9 @@ public class GenerateThucydidesJUnitStoriesMojo extends AbstractMojo {
     }
 
     private File[] getFiles(File storiesDir) throws MojoExecutionException {
-        try{
+        try {
             return storiesDir.listFiles();
-        } catch (NullPointerException e){
+        } catch (NullPointerException e) {
             throw new MojoExecutionException("No files in directory: " + storiesDir.getName(), e);
         }
 
@@ -93,19 +96,7 @@ public class GenerateThucydidesJUnitStoriesMojo extends AbstractMojo {
                 "\n" +
                 "import net.thucydides.jbehave.ThucydidesJUnitStory;\n" +
                 "\n" +
-                "public class " + name +" extends ThucydidesJUnitStory {}";
-    }
-
-    private String getClassNameFrom(String name) {
-        int extensionIndex = name.lastIndexOf('.');
-        String nameWithOutExtension = name.substring(0, extensionIndex);
-        String[] words = nameWithOutExtension.split("_");
-        StringBuilder builder = new StringBuilder();
-        for (String word : words) {
-            builder.append(Character.toTitleCase(word.charAt(0)))
-                    .append(word.substring(1));
-        }
-        return builder.toString();
+                "public class " + name + " extends ThucydidesJUnitStory {}";
     }
 
     private void createJavaClass(String name, String text) throws IOException {
@@ -127,7 +118,7 @@ public class GenerateThucydidesJUnitStoriesMojo extends AbstractMojo {
         int p = Math.max(fileName.lastIndexOf('/'), fileName.lastIndexOf('\\'));
 
         if (i > p) {
-            extension = fileName.substring(i+1);
+            extension = fileName.substring(i + 1);
         }
         return extension;
     }
