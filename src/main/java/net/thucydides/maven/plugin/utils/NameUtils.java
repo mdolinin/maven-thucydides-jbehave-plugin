@@ -22,6 +22,8 @@ public final class NameUtils {
         for (int i = 0; i < words.length; i++) {
             if (i == 0) {
                 builder.append(Character.toLowerCase(words[i].charAt(0)));
+            } else if (words[i].length() == 0) {
+                continue;
             } else {
                 builder.append(Character.toTitleCase(words[i].charAt(0)));
             }
