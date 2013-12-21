@@ -73,6 +73,7 @@ public class GenerateScenarioStepsMojo extends AbstractMojo {
 
     private List<ScenarioStepsClassModel> scenarioStepsClassModels = new ArrayList<ScenarioStepsClassModel>();
     private StoryParser storyParser;
+    private File template;
 
     public void execute() throws MojoExecutionException {
         storyParser = new RegexStoryParser(new LocalizedKeywords());
@@ -116,16 +117,15 @@ public class GenerateScenarioStepsMojo extends AbstractMojo {
     }
 
     private void createJavaClasses() throws MojoExecutionException {
-        File template = new File(GenerateScenarioStepsMojo.class.getResource("/ScenariStepsClass.ftl").getFile());
-        Configuration cfg = new Configuration();
-        cfg.setObjectWrapper(new DefaultObjectWrapper());
-        cfg.setDefaultEncoding("UTF-8");
         Template temp;
         try {
-            cfg.setDirectoryForTemplateLoading(template.getParentFile());
-            temp = cfg.getTemplate(template.getName());
+            Configuration cfg = new Configuration();
+            cfg.setObjectWrapper(new DefaultObjectWrapper());
+            cfg.setDefaultEncoding("UTF-8");
+            cfg.setDirectoryForTemplateLoading(getTemplateFile().getParentFile());
+            temp = cfg.getTemplate(getTemplateFile().getName());
         } catch (IOException e) {
-            throw new MojoExecutionException("Error with file " + template.getName(), e);
+            throw new MojoExecutionException(e.getMessage(), e);
         }
         for (ScenarioStepsClassModel scenarioStepsClassModel : scenarioStepsClassModels) {
             Writer fileWriter = null;
@@ -141,6 +141,14 @@ public class GenerateScenarioStepsMojo extends AbstractMojo {
                 throw new MojoExecutionException("Error with file " + name, e);
             }
         }
+    }
+
+    private File getTemplateFile() throws IOException {
+        if (template == null) {
+            template = File.createTempFile("template", ".ftl");
+            FileUtils.copyInputStreamToFile(GenerateScenarioStepsMojo.class.getResourceAsStream("/ScenarioStepsClass.ftl"), template);
+        }
+        return template;
     }
 
     private static String getClassNameFrom(String name) {
