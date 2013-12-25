@@ -40,7 +40,7 @@ import java.util.Map;
 
 /**
  * @goal generate-steps
- * @phase generate-sources
+ * @phase process-classes
  */
 public class GenerateScenarioStepsMojo extends AbstractMojo {
 

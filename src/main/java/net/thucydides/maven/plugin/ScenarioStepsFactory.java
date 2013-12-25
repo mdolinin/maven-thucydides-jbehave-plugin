@@ -1,14 +1,14 @@
 package net.thucydides.maven.plugin;
 
-import net.thucydides.jbehave.ClassFinder;
 import net.thucydides.jbehave.ThucydidesStepFactory;
-import net.thucydides.maven.plugin.generate.model.FieldsSteps;
-import net.thucydides.maven.plugin.generate.model.ScenarioMethod;
-import net.thucydides.maven.plugin.generate.model.ScenarioStepsClassModel;
-import net.thucydides.maven.plugin.generate.model.StepMethod;
+import net.thucydides.jbehave.reflection.Extract;
+import net.thucydides.maven.plugin.generate.model.*;
+import org.jbehave.core.configuration.Keywords;
 import org.jbehave.core.configuration.MostUsefulConfiguration;
 import org.jbehave.core.model.Scenario;
 import org.jbehave.core.model.Story;
+import org.jbehave.core.parsers.RegexPrefixCapturingPatternParser;
+import org.jbehave.core.parsers.StepMatcher;
 import org.jbehave.core.steps.CandidateSteps;
 import org.jbehave.core.steps.StepCandidate;
 
@@ -25,10 +25,17 @@ public class ScenarioStepsFactory {
     private final ThucydidesStepFactory thucydidesStepFactory;
     private String rootPackage;
     private List<StepCandidate> stepCandidates;
+    private RegexPrefixCapturingPatternParser stepPatternParser = new RegexPrefixCapturingPatternParser();
 
     public ScenarioStepsFactory(String rootPackage) {
         this.rootPackage = rootPackage;
-        this.thucydidesStepFactory = new ThucydidesStepFactory(new MostUsefulConfiguration(), rootPackage, ClassFinder.loadClasses().getClassLoader());
+        this.thucydidesStepFactory = new ThucydidesStepFactory(new MostUsefulConfiguration(), rootPackage, getClassLoader());
+    }
+
+    private ClassLoader getClassLoader() {
+        ClassLoader classLoader = ClassLoader.getSystemClassLoader();
+        System.out.println("java.class.path : " + System.getProperty("java.class.path"));
+        return classLoader;
     }
 
     private List<StepCandidate> findStepCandidates() {
@@ -57,26 +64,25 @@ public class ScenarioStepsFactory {
             ScenarioMethod scenarioMethod = new ScenarioMethod();
             scenarioMethod.setScenarioName(scenario.getTitle());
             scenarioMethod.setMethodName(getMethodNameFrom(scenario.getTitle()));
+            List<MethodArgument> scenarioMethodArguments = new ArrayList<MethodArgument>();
             List<StepMethod> stepMethods = new ArrayList<StepMethod>();
+            String previousNonAndStep = null;
             for (String step : scenario.getSteps()) {
-                StepCandidate matchedStep = getMatchedStepFor(step);
-                if (matchedStep == null) {
+                StepMethod matchedStepMethod = getMatchedStepMethodFor(step, previousNonAndStep, imports, scenarioMethodArguments);
+                if (matchedStepMethod.getMethodName() == null) {
                     continue;
                 }
-                Class<?> stepClass = matchedStep.getMethod().getDeclaringClass();
-                imports.add(stepClass.getCanonicalName());
                 FieldsSteps fieldsSteps = new FieldsSteps();
-                String fieldClassName = stepClass.getSimpleName();
-                fieldsSteps.setClassName(fieldClassName);
-                String fieldName = replaceFirstCharacterToLowerCase(fieldClassName);
-                fieldsSteps.setFieldName(fieldName);
+                fieldsSteps.setClassName(matchedStepMethod.getMethodClass().getSimpleName());
+                fieldsSteps.setFieldName(matchedStepMethod.getFieldName());
                 fieldSteps.add(fieldsSteps);
-                StepMethod stepMethod = new StepMethod();
-                stepMethod.setFieldName(fieldName);
-                stepMethod.setMethodName(matchedStep.getMethod().getName());
-                stepMethods.add(stepMethod);
+                stepMethods.add(matchedStepMethod);
+                if (!step.startsWith(Keywords.AND)) {
+                    previousNonAndStep = step;
+                }
             }
             scenarioMethod.setStepMethods(stepMethods);
+            scenarioMethod.setArguments(scenarioMethodArguments);
             scenarios.add(scenarioMethod);
         }
         scenarioStepsClassModel.setImports(imports);
@@ -85,12 +91,37 @@ public class ScenarioStepsFactory {
         return scenarioStepsClassModel;
     }
 
-    public StepCandidate getMatchedStepFor(String step) {
+    public StepMethod getMatchedStepMethodFor(String step, String previousNonAndStep, Set<String> imports, List<MethodArgument> scenarioMethodArguments) {
+        StepMethod stepMethod = new StepMethod();
         for (StepCandidate candidate : getStepCandidates()) {
-            if (candidate.matches(step)) {
-                return candidate;
+            if (candidate.matches(step, previousNonAndStep)) {
+                stepMethod.setMethodName(candidate.getMethod().getName());
+
+                Class<?> stepClass = candidate.getMethod().getDeclaringClass();
+                stepMethod.setMethodClass(stepClass);
+                imports.add(stepClass.getCanonicalName());
+                String fieldClassName = stepClass.getSimpleName();
+                String fieldName = replaceFirstCharacterToLowerCase(fieldClassName);
+                stepMethod.setFieldName(fieldName);
+                //get method arguments
+                List<MethodArgument> methodArguments = new ArrayList<MethodArgument>();
+                StepCandidate stepCandidate = (StepCandidate) Extract.field("stepCandidate").from(candidate);
+                StepMatcher stepMatcher = (StepMatcher) Extract.field("stepMatcher").from(stepCandidate);
+                String[] parameterNames = stepMatcher.parameterNames();
+                for (int i = 0; i < parameterNames.length; i++) {
+                    MethodArgument methodArgument = new MethodArgument();
+                    methodArgument.setArgumentName(parameterNames[i]);
+                    Class<?> argumentClass = candidate.getMethod().getParameterTypes()[i];
+                    methodArgument.setArgumentClass(argumentClass);
+                    methodArgument.setArgumentType(argumentClass.getSimpleName());
+                    imports.add(argumentClass.getCanonicalName());
+                    methodArguments.add(methodArgument);
+                    scenarioMethodArguments.add(methodArgument);
+                }
+                stepMethod.setMethodArguments(methodArguments);
+                return stepMethod;
             }
         }
-        return null;
+        return stepMethod;
     }
 }

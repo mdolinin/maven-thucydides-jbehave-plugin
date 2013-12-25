@@ -6,6 +6,16 @@ public class ScenarioMethod {
 
     private String scenarioName;
     private String methodName;
+    private List<StepMethod> stepMethods;
+    private List<MethodArgument> arguments;
+
+    public List<MethodArgument> getArguments() {
+        return arguments;
+    }
+
+    public void setArguments(List<MethodArgument> arguments) {
+        this.arguments = arguments;
+    }
 
     public List<StepMethod> getStepMethods() {
         return stepMethods;
@@ -30,7 +40,5 @@ public class ScenarioMethod {
     public void setScenarioName(String scenarioName) {
         this.scenarioName = scenarioName;
     }
-
-    private List<StepMethod> stepMethods;
 
 }
