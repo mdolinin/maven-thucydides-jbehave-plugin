@@ -3,15 +3,17 @@ package net.thucydides.maven.plugin;
 import net.thucydides.jbehave.ThucydidesStepFactory;
 import net.thucydides.jbehave.reflection.Extract;
 import net.thucydides.maven.plugin.generate.model.*;
+import net.thucydides.maven.plugin.utils.DynamicURLClassLoader;
 import org.jbehave.core.configuration.Keywords;
 import org.jbehave.core.configuration.MostUsefulConfiguration;
 import org.jbehave.core.model.Scenario;
 import org.jbehave.core.model.Story;
-import org.jbehave.core.parsers.RegexPrefixCapturingPatternParser;
 import org.jbehave.core.parsers.StepMatcher;
 import org.jbehave.core.steps.CandidateSteps;
 import org.jbehave.core.steps.StepCandidate;
 
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -24,18 +26,22 @@ public class ScenarioStepsFactory {
 
     private final ThucydidesStepFactory thucydidesStepFactory;
     private String rootPackage;
+    private List<URL> urlsForCustomClasspath;
     private List<StepCandidate> stepCandidates;
-    private RegexPrefixCapturingPatternParser stepPatternParser = new RegexPrefixCapturingPatternParser();
 
-    public ScenarioStepsFactory(String rootPackage) {
+    public ScenarioStepsFactory(String rootPackage, List<URL> urlsForCustomClasspath) {
         this.rootPackage = rootPackage;
+        this.urlsForCustomClasspath = urlsForCustomClasspath;
         this.thucydidesStepFactory = new ThucydidesStepFactory(new MostUsefulConfiguration(), rootPackage, getClassLoader());
     }
 
     private ClassLoader getClassLoader() {
         ClassLoader classLoader = ClassLoader.getSystemClassLoader();
-        System.out.println("java.class.path : " + System.getProperty("java.class.path"));
-        return classLoader;
+        DynamicURLClassLoader dynamicURLClassLoader = new DynamicURLClassLoader((URLClassLoader) classLoader);
+        for (URL url : urlsForCustomClasspath) {
+            dynamicURLClassLoader.addURL(url);
+        }
+        return dynamicURLClassLoader;
     }
 
     private List<StepCandidate> findStepCandidates() {

@@ -1,6 +1,8 @@
 package net.thucydides.maven.plugin;
 
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.project.MavenProject;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -20,19 +22,29 @@ public class WhenGenerateScenarioStepsForEachStoryFile {
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     File outputDirectory;
+    MavenProject project = null;
+    File testClassesDirectory;
+    File classesDirectory;
+
 
     @Before
     public void setupPlugin() throws IOException {
         outputDirectory = temporaryFolder.newFolder("sample-output");
+        classesDirectory = new File("./target/classes");
+        testClassesDirectory = new File("./target/test-classes");
+        project = new MavenProject();
 
         plugin = new GenerateScenarioStepsMojo();
         plugin.outputDirectory = outputDirectory;
+        plugin.classesDirectory = classesDirectory;
+        plugin.testClassesDirectory = testClassesDirectory;
+        plugin.project = project;
         plugin.packageForScenarioSteps = "net.thucydides.maven.plugin.test";
         plugin.storiesDirectory = getResourcesAt("/stories");
     }
 
     @Test
-    public void should_create_scenario_steps_class_for_each_story_file() throws MojoExecutionException {
+    public void should_create_scenario_steps_class_for_each_story_file() throws MojoExecutionException, MojoFailureException {
         plugin.execute();
         File destinationDirectory = new File(outputDirectory, plugin.packageForScenarioSteps.replaceAll("\\.", "/"));
         assertThat(destinationDirectory.list(javaFiles())).hasSize(2);

@@ -22,8 +22,11 @@ import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import net.thucydides.maven.plugin.generate.model.ScenarioStepsClassModel;
 import org.apache.commons.io.FileUtils;
+import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.project.MavenProject;
 import org.jbehave.core.i18n.LocalizedKeywords;
 import org.jbehave.core.model.Story;
 import org.jbehave.core.parsers.RegexStoryParser;
@@ -33,14 +36,14 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.*;
 
 /**
  * @goal generate-steps
- * @phase process-classes
+ * @phase process-test-classes
+ * @requiresDependencyResolution compile
  */
 public class GenerateScenarioStepsMojo extends AbstractMojo {
 
@@ -69,17 +72,43 @@ public class GenerateScenarioStepsMojo extends AbstractMojo {
      */
     public String packageForScenarioSteps;
 
+    /**
+     * The Maven Project.
+     *
+     * @parameter expression="${project}"
+     * @required
+     * @readonly
+     */
+    public MavenProject project = null;
+
+    /**
+     * The directory containing generated test classes of the project being tested. This will be included at the
+     * beginning of the test classpath.
+     *
+     * @parameter expression="${project.build.testOutputDirectory}"
+     * @required
+     */
+    public File testClassesDirectory;
+
+    /**
+     * The directory containing generated classes of the project being tested. This will be included after the test
+     * classes in the test classpath.
+     *
+     * @parameter expression="${project.build.outputDirectory}"
+     * @required
+     */
+    public File classesDirectory;
+
     private ScenarioStepsFactory scenarioStepsFactory;
 
     private List<ScenarioStepsClassModel> scenarioStepsClassModels = new ArrayList<ScenarioStepsClassModel>();
     private StoryParser storyParser;
     private File template;
 
-    public void execute() throws MojoExecutionException {
+    public void execute() throws MojoExecutionException, MojoFailureException {
         storyParser = new RegexStoryParser(new LocalizedKeywords());
-        scenarioStepsFactory = new ScenarioStepsFactory(packageForScenarioSteps);
-        File storiesDir = storiesDirectory;
-        findStoryFilesAndGenerateScenarioStepsClassModels(storiesDir);
+        scenarioStepsFactory = new ScenarioStepsFactory(packageForScenarioSteps, getUrlsForCustomClasspath());
+        findStoryFilesAndGenerateScenarioStepsClassModels(storiesDirectory);
         createJavaClasses();
     }
 
@@ -179,5 +208,46 @@ public class GenerateScenarioStepsMojo extends AbstractMojo {
             extension = fileName.substring(i + 1);
         }
         return extension;
+    }
+
+    /**
+     * Generate the test classpath.
+     *
+     * @return List containing the classpath elements
+     * @throws MojoFailureException when it happens
+     */
+    private List<URL> getUrlsForCustomClasspath() throws MojoFailureException, MojoExecutionException {
+        List<URL> classpath = new ArrayList<URL>(2 + getProject().getArtifacts().size());
+
+        try {
+            classpath.add(getTestClassesDirectory().getAbsoluteFile().toURI().toURL());
+            classpath.add(getClassesDirectory().getAbsoluteFile().toURI().toURL());
+
+            @SuppressWarnings("unchecked") Set<Artifact> classpathArtifacts = getProject().getArtifacts();
+
+            for (Artifact artifact : classpathArtifacts) {
+                if (artifact.getArtifactHandler().isAddedToClasspath()) {
+                    File file = artifact.getFile();
+                    if (file != null) {
+                        classpath.add(file.toURI().toURL());
+                    }
+                }
+            }
+        } catch (MalformedURLException e) {
+            getLog().error(e.getMessage(), e);
+        }
+        return classpath;
+    }
+
+    public MavenProject getProject() {
+        return project;
+    }
+
+    public File getTestClassesDirectory() {
+        return testClassesDirectory;
+    }
+
+    public File getClassesDirectory() {
+        return classesDirectory;
     }
 }

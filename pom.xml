@@ -13,15 +13,9 @@
     <name>maven-thucydides-jbehave-plugin Maven Mojo</name>
     <dependencies>
         <dependency>
-            <groupId>org.apache.maven</groupId>
-            <artifactId>maven-plugin-api</artifactId>
-            <version>2.0</version>
-        </dependency>
-        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.11</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
@@ -30,9 +24,14 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-plugin-plugin</artifactId>
+            <version>3.2</version>
+        </dependency>
+        <dependency>
             <groupId>net.thucydides</groupId>
             <artifactId>thucydides-jbehave-plugin</artifactId>
-            <version>0.9.98</version>
+            <version>0.9.222</version>
         </dependency>
     </dependencies>
 </project>
