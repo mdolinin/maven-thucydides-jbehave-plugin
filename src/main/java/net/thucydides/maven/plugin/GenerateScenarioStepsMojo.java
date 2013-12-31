@@ -21,7 +21,6 @@ import freemarker.template.DefaultObjectWrapper;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import net.thucydides.maven.plugin.generate.model.ScenarioStepsClassModel;
-import net.thucydides.maven.plugin.utils.DynamicURLClassLoader;
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
@@ -44,8 +43,8 @@ import java.util.*;
 
 /**
  * @goal generate-steps
- * @phase process-test-classes
- * @requiresDependencyResolution compile
+ * @phase test
+ * @requiresDependencyResolution test
  */
 public class GenerateScenarioStepsMojo extends AbstractMojo {
 
@@ -102,14 +101,12 @@ public class GenerateScenarioStepsMojo extends AbstractMojo {
     public File classesDirectory;
 
     private ScenarioStepsFactory scenarioStepsFactory;
-    private List<URL> urlsForCustomClasspath;
     private List<ScenarioStepsClassModel> scenarioStepsClassModels = new ArrayList<ScenarioStepsClassModel>();
     private StoryParser storyParser;
     private File template;
 
     public void execute() throws MojoExecutionException, MojoFailureException {
         storyParser = new RegexStoryParser(new LocalizedKeywords());
-        urlsForCustomClasspath = getUrlsForCustomClasspath();
         scenarioStepsFactory = new ScenarioStepsFactory(packageForScenarioSteps, getClassLoader());
         findStoryFilesAndGenerateScenarioStepsClassModels(storiesDirectory);
         createJavaClasses();
@@ -219,8 +216,8 @@ public class GenerateScenarioStepsMojo extends AbstractMojo {
      * @return List containing the classpath elements
      * @throws MojoFailureException when it happens
      */
-    private List<URL> getUrlsForCustomClasspath() throws MojoFailureException, MojoExecutionException {
-        List<URL> classpath = new ArrayList<URL>(2 + getProject().getArtifacts().size());
+    private Set<URL> getUrlsForCustomClasspath() throws MojoFailureException, MojoExecutionException {
+        Set<URL> classpath = new HashSet<URL>(2 + getProject().getArtifacts().size());
 
         try {
             classpath.add(getTestClassesDirectory().getAbsoluteFile().toURI().toURL());
@@ -229,7 +226,7 @@ public class GenerateScenarioStepsMojo extends AbstractMojo {
             @SuppressWarnings("unchecked") Set<Artifact> classpathArtifacts = getProject().getArtifacts();
 
             for (Artifact artifact : classpathArtifacts) {
-                if (artifact.getArtifactHandler().isAddedToClasspath()) {
+                if (artifact.getArtifactHandler().isAddedToClasspath() && !artifact.getGroupId().startsWith("org.apache.maven")) {
                     File file = artifact.getFile();
                     if (file != null) {
                         classpath.add(file.toURI().toURL());
@@ -254,12 +251,12 @@ public class GenerateScenarioStepsMojo extends AbstractMojo {
         return classesDirectory;
     }
 
-    private ClassLoader getClassLoader() {
-        ClassLoader classLoader = ClassLoader.getSystemClassLoader();
-        DynamicURLClassLoader dynamicURLClassLoader = new DynamicURLClassLoader((URLClassLoader) classLoader);
-        for (URL url : urlsForCustomClasspath) {
-            dynamicURLClassLoader.addURL(url);
-        }
-        return dynamicURLClassLoader;
+    private ClassLoader getClassLoader() throws MojoFailureException, MojoExecutionException {
+        ClassLoader pluginClassLoader = getClass().getClassLoader();
+        Set<URL> projectClasspathList = getUrlsForCustomClasspath();
+        ClassLoader projectClassLoader = new URLClassLoader(
+                projectClasspathList.toArray(
+                        new URL[projectClasspathList.size()]), pluginClassLoader);
+        return projectClassLoader;
     }
 }

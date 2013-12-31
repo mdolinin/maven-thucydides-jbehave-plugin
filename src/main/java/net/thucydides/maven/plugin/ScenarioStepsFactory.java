@@ -20,7 +20,6 @@ import static net.thucydides.maven.plugin.utils.NameUtils.*;
 
 public class ScenarioStepsFactory extends ThucydidesStepFactory {
 
-
     private String rootPackage;
     private List<StepCandidate> stepCandidates;
 
