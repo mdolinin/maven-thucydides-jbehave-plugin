@@ -100,11 +100,19 @@ public class ScenarioStepsFactory extends ThucydidesStepFactory {
                 String[] parameterNames = stepMatcher.parameterNames();
                 for (int i = 0; i < parameterNames.length; i++) {
                     MethodArgument methodArgument = new MethodArgument();
-                    methodArgument.setArgumentName(parameterNames[i]);
+                    String parameterName = parameterNames[i];
+                    for(MethodArgument scenarioArgument : scenarioMethodArguments){
+                        if(scenarioArgument.getArgumentName().equals(parameterName)){
+                            parameterName=parameterName + i;
+                        }
+                    }
+                    methodArgument.setArgumentName(parameterName);
                     Class<?> argumentClass = candidate.getMethod().getParameterTypes()[i];
                     methodArgument.setArgumentClass(argumentClass);
                     methodArgument.setArgumentType(argumentClass.getSimpleName());
-                    imports.add(argumentClass.getCanonicalName());
+                    if (!argumentClass.isPrimitive()) {
+                        imports.add(argumentClass.getCanonicalName());
+                    }
                     methodArguments.add(methodArgument);
                     scenarioMethodArguments.add(methodArgument);
                 }
