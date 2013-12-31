@@ -21,6 +21,7 @@ import freemarker.template.DefaultObjectWrapper;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import net.thucydides.maven.plugin.generate.model.ScenarioStepsClassModel;
+import net.thucydides.maven.plugin.utils.DynamicURLClassLoader;
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
@@ -38,6 +39,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.*;
 
 /**
@@ -100,14 +102,15 @@ public class GenerateScenarioStepsMojo extends AbstractMojo {
     public File classesDirectory;
 
     private ScenarioStepsFactory scenarioStepsFactory;
-
+    private List<URL> urlsForCustomClasspath;
     private List<ScenarioStepsClassModel> scenarioStepsClassModels = new ArrayList<ScenarioStepsClassModel>();
     private StoryParser storyParser;
     private File template;
 
     public void execute() throws MojoExecutionException, MojoFailureException {
         storyParser = new RegexStoryParser(new LocalizedKeywords());
-        scenarioStepsFactory = new ScenarioStepsFactory(packageForScenarioSteps, getUrlsForCustomClasspath());
+        urlsForCustomClasspath = getUrlsForCustomClasspath();
+        scenarioStepsFactory = new ScenarioStepsFactory(packageForScenarioSteps, getClassLoader());
         findStoryFilesAndGenerateScenarioStepsClassModels(storiesDirectory);
         createJavaClasses();
     }
@@ -249,5 +252,14 @@ public class GenerateScenarioStepsMojo extends AbstractMojo {
 
     public File getClassesDirectory() {
         return classesDirectory;
+    }
+
+    private ClassLoader getClassLoader() {
+        ClassLoader classLoader = ClassLoader.getSystemClassLoader();
+        DynamicURLClassLoader dynamicURLClassLoader = new DynamicURLClassLoader((URLClassLoader) classLoader);
+        for (URL url : urlsForCustomClasspath) {
+            dynamicURLClassLoader.addURL(url);
+        }
+        return dynamicURLClassLoader;
     }
 }
