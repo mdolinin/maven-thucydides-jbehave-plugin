@@ -18,7 +18,7 @@ import java.util.Set;
 
 import static net.thucydides.maven.plugin.utils.NameUtils.*;
 
-public class ScenarioStepsFactory extends ThucydidesStepFactory {
+public class  ScenarioStepsFactory extends ThucydidesStepFactory {
 
     private String rootPackage;
     private List<StepCandidate> stepCandidates;
@@ -55,10 +55,11 @@ public class ScenarioStepsFactory extends ThucydidesStepFactory {
             scenarioMethod.setScenarioName(scenario.getTitle());
             scenarioMethod.setMethodName(getMethodNameFrom(scenario.getTitle()));
             List<MethodArgument> scenarioMethodArguments = new ArrayList<MethodArgument>();
+            Set<String> thrownExceptions = new HashSet<String>();
             List<StepMethod> stepMethods = new ArrayList<StepMethod>();
             String previousNonAndStep = null;
             for (String step : scenario.getSteps()) {
-                StepMethod matchedStepMethod = getMatchedStepMethodFor(step, previousNonAndStep, imports, scenarioMethodArguments);
+                StepMethod matchedStepMethod = getMatchedStepMethodFor(step, previousNonAndStep, imports, scenarioMethodArguments, thrownExceptions);
                 if (matchedStepMethod.getMethodName() == null) {
                     continue;
                 }
@@ -73,6 +74,7 @@ public class ScenarioStepsFactory extends ThucydidesStepFactory {
             }
             scenarioMethod.setStepMethods(stepMethods);
             scenarioMethod.setArguments(scenarioMethodArguments);
+            scenarioMethod.setThrownExceptions(thrownExceptions);
             scenarios.add(scenarioMethod);
         }
         scenarioStepsClassModel.setImports(imports);
@@ -81,12 +83,16 @@ public class ScenarioStepsFactory extends ThucydidesStepFactory {
         return scenarioStepsClassModel;
     }
 
-    public StepMethod getMatchedStepMethodFor(String step, String previousNonAndStep, Set<String> imports, List<MethodArgument> scenarioMethodArguments) {
+    public StepMethod getMatchedStepMethodFor(String step, String previousNonAndStep, Set<String> imports, List<MethodArgument> scenarioMethodArguments, Set<String> thrownExceptions) {
         StepMethod stepMethod = new StepMethod();
         for (StepCandidate candidate : getStepCandidates()) {
             if (candidate.matches(step, previousNonAndStep)) {
                 stepMethod.setMethodName(candidate.getMethod().getName());
-
+                Class<?>[] exceptionTypes = candidate.getMethod().getExceptionTypes();
+                for(Class<?> exceptionType : exceptionTypes){
+                    thrownExceptions.add(exceptionType.getSimpleName());
+                    imports.add(exceptionType.getCanonicalName());
+                }
                 Class<?> stepClass = candidate.getMethod().getDeclaringClass();
                 stepMethod.setMethodClass(stepClass);
                 imports.add(stepClass.getCanonicalName());

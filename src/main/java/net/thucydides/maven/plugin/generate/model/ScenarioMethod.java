@@ -1,6 +1,7 @@
 package net.thucydides.maven.plugin.generate.model;
 
 import java.util.List;
+import java.util.Set;
 
 public class ScenarioMethod {
 
@@ -8,6 +9,15 @@ public class ScenarioMethod {
     private String methodName;
     private List<StepMethod> stepMethods;
     private List<MethodArgument> arguments;
+    private Set<String> thrownExceptions;
+
+    public Set<String> getThrownExceptions() {
+        return thrownExceptions;
+    }
+
+    public void setThrownExceptions(Set<String> thrownExceptions) {
+        this.thrownExceptions = thrownExceptions;
+    }
 
     public List<MethodArgument> getArguments() {
         return arguments;

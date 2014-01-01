@@ -1,5 +1,6 @@
 package net.thucydides.maven.plugin.test;
 
+import net.thucydides.maven.plugin.test.example.SimpleException;
 import org.jbehave.core.annotations.Given;
 import org.jbehave.core.annotations.Then;
 import org.jbehave.core.annotations.When;
@@ -28,7 +29,7 @@ public class SimpleSteps {
     }
 
     @Then("user should see title with: $titleTable")
-    public void thenUserShouldSeeTitleWithText(String titleText){
+    public void thenUserShouldSeeTitleWithText(String titleText) throws SimpleException {
         System.out.println("User see page with title - " + titleText);
     }
 }

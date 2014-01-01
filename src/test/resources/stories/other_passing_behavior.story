@@ -4,4 +4,4 @@ Given I have an implemented JBehave scenario with one param
 And the scenario with two uno and dos parameters also works
 When user open 'http:\\www.google.com'
 Given the scenario with two uno and dos parameters also works
-Then user should see 'Google' in title
+Then user should see title with: 'Google'
