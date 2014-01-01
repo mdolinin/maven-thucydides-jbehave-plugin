@@ -11,17 +11,15 @@ import org.jbehave.core.parsers.StepMatcher;
 import org.jbehave.core.steps.CandidateSteps;
 import org.jbehave.core.steps.StepCandidate;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static net.thucydides.maven.plugin.utils.NameUtils.*;
 
-public class  ScenarioStepsFactory extends ThucydidesStepFactory {
+public class ScenarioStepsFactory extends ThucydidesStepFactory {
 
     private String rootPackage;
     private List<StepCandidate> stepCandidates;
+    private Map<String, Integer> argumentNames;
 
     public ScenarioStepsFactory(String rootPackage, ClassLoader classLoader) {
         super(new MostUsefulConfiguration(), rootPackage, classLoader);
@@ -56,6 +54,7 @@ public class  ScenarioStepsFactory extends ThucydidesStepFactory {
             scenarioMethod.setMethodName(getMethodNameFrom(scenario.getTitle()));
             List<MethodArgument> scenarioMethodArguments = new ArrayList<MethodArgument>();
             Set<String> thrownExceptions = new HashSet<String>();
+            argumentNames = new HashMap<String, Integer>();
             List<StepMethod> stepMethods = new ArrayList<StepMethod>();
             String previousNonAndStep = null;
             for (String step : scenario.getSteps()) {
@@ -89,7 +88,7 @@ public class  ScenarioStepsFactory extends ThucydidesStepFactory {
             if (candidate.matches(step, previousNonAndStep)) {
                 stepMethod.setMethodName(candidate.getMethod().getName());
                 Class<?>[] exceptionTypes = candidate.getMethod().getExceptionTypes();
-                for(Class<?> exceptionType : exceptionTypes){
+                for (Class<?> exceptionType : exceptionTypes) {
                     thrownExceptions.add(exceptionType.getSimpleName());
                     imports.add(exceptionType.getCanonicalName());
                 }
@@ -107,10 +106,14 @@ public class  ScenarioStepsFactory extends ThucydidesStepFactory {
                 for (int i = 0; i < parameterNames.length; i++) {
                     MethodArgument methodArgument = new MethodArgument();
                     String parameterName = parameterNames[i];
-                    for(MethodArgument scenarioArgument : scenarioMethodArguments){
-                        if(scenarioArgument.getArgumentName().equals(parameterName)){
-                            parameterName=parameterName + i;
-                        }
+                    int counter = 0;
+                    if (argumentNames.containsKey(parameterName)) {
+                        counter = argumentNames.get(parameterName);
+                        counter++;
+                        argumentNames.put(parameterName, counter);
+                        parameterName = parameterName + counter;
+                    } else {
+                        argumentNames.put(parameterName, counter);
                     }
                     methodArgument.setArgumentName(parameterName);
                     Class<?> argumentClass = candidate.getMethod().getParameterTypes()[i];
