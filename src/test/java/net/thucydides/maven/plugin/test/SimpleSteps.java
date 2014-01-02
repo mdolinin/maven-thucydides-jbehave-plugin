@@ -5,6 +5,8 @@ import org.jbehave.core.annotations.Given;
 import org.jbehave.core.annotations.Then;
 import org.jbehave.core.annotations.When;
 
+import java.util.List;
+
 public class SimpleSteps {
 
     @Given("I have an implemented JBehave scenario")
@@ -26,6 +28,11 @@ public class SimpleSteps {
     @When("user open '$url'")
     public void whenUserOpenUrl(String url){
         System.out.println("User open url - " + url);
+    }
+
+    @When("user save $links for use")
+    public void whenUserSaveLinksForUse(List<String> links){
+        System.out.println("User save links - " + links);
     }
 
     @Then("user should see title with: $titleTable")

@@ -22,8 +22,8 @@ public class ${scenarioStepsClass.classNamePrefix}Steps extends ScenarioSteps {
     }
 
     <#list scenarioStepsClass.scenarios as method>
-    @When("${method.scenarioName}<#assign lastMethodIndex = method.arguments?size><#list method.arguments as argument><#if (0 < argument_index) && (argument_index < lastMethodIndex)>,</#if> $${argument.argumentName}</#list>")
-    public void ${method.methodName}(<#assign lastMethodIndex = method.arguments?size><#list method.arguments as argument><#if (0 < argument_index) && (argument_index < lastMethodIndex)>, </#if>${argument.argumentType} ${argument.argumentName}</#list>)<#assign lastExceptionIndex = method.thrownExceptions?size><#if 0 < lastExceptionIndex> throws </#if><#list method.thrownExceptions as exception><#if (0 < exception_index) && (exception_index < lastExceptionIndex)>, </#if>${exception}</#list> {
+    @When("${method.scenarioName}<#assign lastMethodIndex = method.arguments?size><#list method.arguments as argument><#if (0 < argument_index) && (argument_index < lastMethodIndex)> </#if> $${argument.argumentName}</#list>")
+    public void ${method.methodName}(<#assign lastMethodIndex = method.arguments?size><#list method.arguments as argument><#if (0 < argument_index) && (argument_index < lastMethodIndex)>, </#if>${argument.argumentType}${argument.argumentGenericType} ${argument.argumentName}</#list>)<#assign lastExceptionIndex = method.thrownExceptions?size><#if 0 < lastExceptionIndex> throws </#if><#list method.thrownExceptions as exception><#if (0 < exception_index) && (exception_index < lastExceptionIndex)>, </#if>${exception}</#list> {
         <#list method.stepMethods as step>
         ${step.fieldName}.${step.methodName}(<#assign lastIndex = step.methodArguments?size><#list step.methodArguments as argument><#if (0 < argument_index) && (argument_index < lastIndex)>, </#if>${argument.argumentName}</#list>);
         </#list>

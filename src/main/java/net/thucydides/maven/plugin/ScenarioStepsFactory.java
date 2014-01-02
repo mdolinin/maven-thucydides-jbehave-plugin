@@ -11,6 +11,8 @@ import org.jbehave.core.parsers.StepMatcher;
 import org.jbehave.core.steps.CandidateSteps;
 import org.jbehave.core.steps.StepCandidate;
 
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.*;
 
 import static net.thucydides.maven.plugin.utils.NameUtils.*;
@@ -105,22 +107,23 @@ public class ScenarioStepsFactory extends ThucydidesStepFactory {
                 String[] parameterNames = stepMatcher.parameterNames();
                 for (int i = 0; i < parameterNames.length; i++) {
                     MethodArgument methodArgument = new MethodArgument();
-                    String parameterName = parameterNames[i];
-                    int counter = 0;
-                    if (argumentNames.containsKey(parameterName)) {
-                        counter = argumentNames.get(parameterName);
-                        counter++;
-                        argumentNames.put(parameterName, counter);
-                        parameterName = parameterName + counter;
-                    } else {
-                        argumentNames.put(parameterName, counter);
-                    }
+                    String parameterName = getUnicParameterName(parameterNames[i]);
                     methodArgument.setArgumentName(parameterName);
                     Class<?> argumentClass = candidate.getMethod().getParameterTypes()[i];
                     methodArgument.setArgumentClass(argumentClass);
                     methodArgument.setArgumentType(argumentClass.getSimpleName());
-                    if (!argumentClass.isPrimitive()) {
-                        imports.add(argumentClass.getCanonicalName());
+                    addToImports(imports, argumentClass);
+                    Type type = candidate.getMethod().getGenericParameterTypes()[i];
+                    if(isParametrized(type)){
+                        String parametrizedTypeClassCanonicalName = getParametrizedTypeClassCanonicalName(type);
+                        Class<?> parametrizedTypeClass = null;
+                        try {
+                            parametrizedTypeClass = getClass().getClassLoader().loadClass(parametrizedTypeClassCanonicalName);
+                        } catch (ClassNotFoundException e) {
+                            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                        }
+                        methodArgument.setArgumentGenericType(parametrizedTypeClass.getSimpleName());
+                        addToImports(imports, parametrizedTypeClass);
                     }
                     methodArguments.add(methodArgument);
                     scenarioMethodArguments.add(methodArgument);
@@ -130,5 +133,41 @@ public class ScenarioStepsFactory extends ThucydidesStepFactory {
             }
         }
         return stepMethod;
+    }
+
+    private void addToImports(Set<String> imports, Class<?> argumentClass) {
+        if (!argumentClass.isPrimitive()) {
+            imports.add(argumentClass.getCanonicalName());
+        }
+    }
+
+    public String getParametrizedTypeClassCanonicalName(Type type) {
+        Type argumentType = argumentType(type);
+        return argumentType.toString().replaceFirst("class ", "");
+    }
+
+    private boolean isParametrized(Type type) {
+        return type instanceof ParameterizedType;
+    }
+
+    private Type rawType(Type type) {
+        return ((ParameterizedType) type).getRawType();
+    }
+
+    private Type argumentType(Type type) {
+        return ((ParameterizedType) type).getActualTypeArguments()[0];
+    }
+
+    private String getUnicParameterName(String parameterName) {
+        int counter = 0;
+        if (argumentNames.containsKey(parameterName)) {
+            counter = argumentNames.get(parameterName);
+            counter++;
+            argumentNames.put(parameterName, counter);
+            parameterName = parameterName + counter;
+        } else {
+            argumentNames.put(parameterName, counter);
+        }
+        return parameterName;
     }
 }

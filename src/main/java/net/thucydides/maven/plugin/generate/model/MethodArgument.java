@@ -5,6 +5,18 @@ public class MethodArgument {
     private Class<?> argumentClass;
     private String argumentType;
     private String argumentName;
+    private String argumentGenericType;
+
+    public String getArgumentGenericType() {
+        if(argumentGenericType != null){
+            return "<" + argumentGenericType + ">";
+        }
+        return "";
+    }
+
+    public void setArgumentGenericType(String argumentGenericType) {
+        this.argumentGenericType = argumentGenericType;
+    }
 
     public Class<?> getArgumentClass() {
         return argumentClass;
