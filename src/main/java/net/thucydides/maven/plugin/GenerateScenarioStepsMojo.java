@@ -43,7 +43,7 @@ import java.util.*;
 
 /**
  * @goal generate-steps
- * @phase test
+ * @phase process-test-classes
  * @requiresDependencyResolution test
  */
 public class GenerateScenarioStepsMojo extends AbstractMojo {
