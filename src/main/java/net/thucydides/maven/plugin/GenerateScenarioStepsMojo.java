@@ -60,7 +60,7 @@ public class GenerateScenarioStepsMojo extends AbstractMojo {
     /**
      * Location of the file.
      *
-     * @parameter expression="${project.junit.stories.directory}" default-value="${project.basedir}/src/test/java"
+     * @parameter expression="${project.junit.stories.directory}" default-value="${project.build.directory}/generated-test-sources"
      * @required
      */
     public File outputDirectory;
@@ -68,7 +68,7 @@ public class GenerateScenarioStepsMojo extends AbstractMojo {
     /**
      * Package name for Scenario jbehave steps
      *
-     * @parameter expression="${project.scenario.steps.package}"
+     * @parameter expression="${project.scenario.steps.package}" default-value="${project.groupId}"
      * @required
      */
     public String packageForScenarioSteps;

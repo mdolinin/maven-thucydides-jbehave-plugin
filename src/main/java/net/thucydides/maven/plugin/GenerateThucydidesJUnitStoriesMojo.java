@@ -42,7 +42,7 @@ public class GenerateThucydidesJUnitStoriesMojo extends AbstractMojo {
     /**
      * Location of the file.
      *
-     * @parameter expression="${project.junit.stories.directory}" default-value="${project.basedir}/src/test/java"
+     * @parameter expression="${project.junit.stories.directory}" default-value="${project.build.testSourceDirectory}"
      * @required
      */
     public File outputDirectory;
@@ -50,7 +50,7 @@ public class GenerateThucydidesJUnitStoriesMojo extends AbstractMojo {
     /**
      * Package name for ThucydidesJUnitStory stubs
      *
-     * @parameter expression="${project.junit.stories.package}"
+     * @parameter expression="${project.junit.stories.package}" default-value="${project.groupId}"
      * @required
      */
     public String packageForStoryStubs;
