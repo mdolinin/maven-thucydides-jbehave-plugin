@@ -5,6 +5,7 @@ public class MethodArgument {
     private Class<?> argumentClass;
     private String argumentType;
     private String argumentName;
+    private String argumentDefaultValue;
     private String argumentGenericType;
 
     public String getArgumentGenericType() {
@@ -40,5 +41,13 @@ public class MethodArgument {
 
     public void setArgumentName(String argumentName) {
         this.argumentName = argumentName;
+    }
+
+    public String getArgumentDefaultValue() {
+        return argumentDefaultValue;
+    }
+
+    public void setArgumentDefaultValue(String argumentDefaultValue) {
+        this.argumentDefaultValue = argumentDefaultValue;
     }
 }

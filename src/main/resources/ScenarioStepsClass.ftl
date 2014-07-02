@@ -29,5 +29,14 @@ public class ${scenarioStepsClass.classNamePrefix}Steps extends ScenarioSteps {
         </#list>
     }
 
+    <#if method.arguments?size != 0 >
+    @When("${method.scenarioName}")
+    public void ${method.methodName}()<#assign lastExceptionIndex = method.thrownExceptions?size><#if 0 < lastExceptionIndex> throws </#if><#list method.thrownExceptions as exception><#if (0 < exception_index) && (exception_index < lastExceptionIndex)>, </#if>${exception}</#list> {
+        <#list method.stepMethods as step>
+        ${step.fieldName}.${step.methodName}(<#assign lastIndex = step.methodArguments?size><#list step.methodArguments as argument><#if (0 < argument_index) && (argument_index < lastIndex)>, </#if>${argument.argumentDefaultValue}</#list>);
+        </#list>
+    }
+
+    </#if>
     </#list>
 }

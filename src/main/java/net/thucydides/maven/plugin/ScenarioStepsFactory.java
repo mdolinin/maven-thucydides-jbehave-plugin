@@ -3,13 +3,17 @@ package net.thucydides.maven.plugin;
 import net.thucydides.jbehave.ThucydidesStepFactory;
 import net.thucydides.jbehave.reflection.Extract;
 import net.thucydides.maven.plugin.generate.model.*;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.jbehave.core.configuration.Keywords;
 import org.jbehave.core.configuration.MostUsefulConfiguration;
+import org.jbehave.core.model.ExamplesTable;
 import org.jbehave.core.model.Scenario;
 import org.jbehave.core.model.Story;
 import org.jbehave.core.parsers.StepMatcher;
 import org.jbehave.core.steps.CandidateSteps;
+import org.jbehave.core.steps.ParameterConverters;
 import org.jbehave.core.steps.StepCandidate;
+import org.jbehave.core.steps.StepCreator;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -104,17 +108,24 @@ public class ScenarioStepsFactory extends ThucydidesStepFactory {
                 List<MethodArgument> methodArguments = new ArrayList<MethodArgument>();
                 StepCandidate stepCandidate = (StepCandidate) Extract.field("stepCandidate").from(candidate);
                 StepMatcher stepMatcher = (StepMatcher) Extract.field("stepMatcher").from(stepCandidate);
+
+                StepCreator stepCreator = (StepCreator) Extract.field("stepCreator").from(stepCandidate);
+                ParameterConverters parameterConverters = (ParameterConverters) Extract.field("parameterConverters").from(stepCreator);
+                List<ParameterConverters.ParameterConverter> converters = (List<ParameterConverters.ParameterConverter>) Extract.field("converters").from(parameterConverters);
+
                 String[] parameterNames = stepMatcher.parameterNames();
                 for (int i = 0; i < parameterNames.length; i++) {
                     MethodArgument methodArgument = new MethodArgument();
-                    String parameterName = getUnicParameterName(parameterNames[i]);
+                    String parameterName = getUniqueParameterName(parameterNames[i]);
                     methodArgument.setArgumentName(parameterName);
+                    String parameterValueAsString = stepMatcher.parameter(i + 1);
                     Class<?> argumentClass = candidate.getMethod().getParameterTypes()[i];
                     methodArgument.setArgumentClass(argumentClass);
                     methodArgument.setArgumentType(argumentClass.getSimpleName());
                     addToImports(imports, argumentClass);
                     Type type = candidate.getMethod().getGenericParameterTypes()[i];
-                    if(isParametrized(type)){
+                    methodArgument.setArgumentDefaultValue(convert(parameterValueAsString, type, converters, imports));
+                    if (isParametrized(type)) {
                         String parametrizedTypeClassCanonicalName = getParametrizedTypeClassCanonicalName(type);
                         Class<?> parametrizedTypeClass = null;
                         try {
@@ -158,7 +169,7 @@ public class ScenarioStepsFactory extends ThucydidesStepFactory {
         return ((ParameterizedType) type).getActualTypeArguments()[0];
     }
 
-    private String getUnicParameterName(String parameterName) {
+    private String getUniqueParameterName(String parameterName) {
         int counter = 0;
         if (argumentNames.containsKey(parameterName)) {
             counter = argumentNames.get(parameterName);
@@ -169,5 +180,29 @@ public class ScenarioStepsFactory extends ThucydidesStepFactory {
             argumentNames.put(parameterName, counter);
         }
         return parameterName;
+    }
+
+    public String convert(String value, Type type, List<ParameterConverters.ParameterConverter> converters, Set<String> imports) {
+        // check if any converters accepts type
+        for (ParameterConverters.ParameterConverter converter : converters) {
+            if (converter.accept(type)) {
+                Object converted = converter.convertValue(value, type);
+                if (converted.getClass().equals(Integer.class) || converted.getClass().equals(Double.class)) {
+                    return value;
+                }
+                addToImports(imports, converted.getClass());
+                addToImports(imports, converter.getClass());
+                if (converted.getClass().equals(ExamplesTable.class)) {
+                    return "new " + converted.getClass().getSimpleName() + "(\"" + StringEscapeUtils.escapeJava(value) + "\")";
+                }
+                return "(" + converted.getClass().getSimpleName() + ") new " + converter.getClass().getSimpleName() + "().convertValue(\"" + StringEscapeUtils.escapeJava(value) + "\", new " + converted.getClass().getSimpleName() + "().getClass())";
+            }
+        }
+
+        if (type == String.class) {
+            return "\"" + StringEscapeUtils.escapeJava(value) + "\"";
+        }
+
+        throw new ParameterConverters.ParameterConvertionFailed("No parameter converter for " + type);
     }
 }
