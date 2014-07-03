@@ -10,7 +10,7 @@ public class ScenarioMethod {
     private List<StepMethod> stepMethods;
     private List<MethodArgument> arguments;
     private Set<String> thrownExceptions;
-    private List<String> add;
+    private List<String> scenarioParameters;
 
     public List<String> getScenarioParameters() {
         return scenarioParameters;
