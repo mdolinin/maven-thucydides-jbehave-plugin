@@ -18,6 +18,8 @@ import org.jbehave.core.steps.StepCreator;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static net.thucydides.maven.plugin.utils.NameUtils.*;
 
@@ -58,7 +60,8 @@ public class ScenarioStepsFactory extends ThucydidesStepFactory {
             ScenarioMethod scenarioMethod = new ScenarioMethod();
             scenarioMethod.setScenarioName(scenario.getTitle());
             scenarioMethod.setMethodName(getMethodNameFrom(scenario.getTitle()));
-            List<MethodArgument> scenarioMethodArguments = new ArrayList<MethodArgument>();
+            List<MethodArgument> scenarioMethodArguments = new LinkedList<MethodArgument>();
+            scenarioMethod.setScenarioParameters(parseScenarioArguments(scenario.getTitle()));
             Set<String> thrownExceptions = new HashSet<String>();
             argumentNames = new HashMap<String, Integer>();
             List<StepMethod> stepMethods = new ArrayList<StepMethod>();
@@ -78,7 +81,8 @@ public class ScenarioStepsFactory extends ThucydidesStepFactory {
                 }
             }
             scenarioMethod.setStepMethods(stepMethods);
-            scenarioMethod.setArguments(scenarioMethodArguments);
+            List<MethodArgument> methodArguments = resolveScenarioParameters(scenarioMethodArguments, scenarioMethod.getScenarioParameters());
+            scenarioMethod.setArguments(methodArguments);
             scenarioMethod.setThrownExceptions(thrownExceptions);
             scenarios.add(scenarioMethod);
         }
@@ -86,6 +90,44 @@ public class ScenarioStepsFactory extends ThucydidesStepFactory {
         scenarioStepsClassModel.setFieldsSteps(fieldSteps);
         scenarioStepsClassModel.setScenarios(scenarios);
         return scenarioStepsClassModel;
+    }
+
+    private List<MethodArgument> resolveScenarioParameters(List<MethodArgument> scenarioMethodArguments, List<String> scenarioParameters) {
+        List<MethodArgument> methodArgumentList = new LinkedList<MethodArgument>();
+        for (String scenarioParameter : scenarioParameters) {
+            methodArgumentList.add(findMethodArgumentByName(scenarioMethodArguments, scenarioParameter));
+        }
+        for (MethodArgument methodArgument : scenarioMethodArguments) {
+            if (!methodArgumentList.contains(methodArgument)) {
+                methodArgumentList.add(methodArgument);
+            }
+        }
+        return methodArgumentList;
+    }
+
+    private MethodArgument findMethodArgumentByName(List<MethodArgument> scenarioMethodArguments, String name) {
+        for (MethodArgument methodArgument : scenarioMethodArguments) {
+            if (name.equals(methodArgument.getArgumentName())) {
+                methodArgument.setArgumentDefaultValue(name);
+                return methodArgument;
+            }
+        }
+        MethodArgument methodArgument = new MethodArgument();
+        methodArgument.setArgumentName(name);
+        methodArgument.setArgumentClass(String.class);
+        methodArgument.setArgumentType(String.class.getSimpleName());
+        methodArgument.setArgumentDefaultValue(name);
+        return methodArgument;
+    }
+
+    private List<String> parseScenarioArguments(String str) {
+        Pattern p = Pattern.compile("\\$(\\w+)");
+        Matcher m = p.matcher(str);
+        List<String> arguments = new LinkedList<String>();
+        while (m.find()) {
+            arguments.add(m.group(1));
+        }
+        return arguments;
     }
 
     public StepMethod getMatchedStepMethodFor(String step, String previousNonAndStep, Set<String> imports, List<MethodArgument> scenarioMethodArguments, Set<String> thrownExceptions) {
