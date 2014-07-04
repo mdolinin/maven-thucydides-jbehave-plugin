@@ -11,6 +11,11 @@
     <packaging>maven-plugin</packaging>
     <version>0.9.223-SNAPSHOT</version>
     <name>maven-thucydides-jbehave-plugin Maven Mojo</name>
+    <scm>
+        <connection>scm:git:git@github.com:thucydides-webtests/thucydides.git</connection>
+        <developerConnection>scm:git:git@github.com:mdolinin/maven-thucydides-jbehave-plugin.git</developerConnection>
+        <url>scm:git:git@github.com:mdolinin/maven-thucydides-jbehave-plugin.git</url>
+    </scm>
     <dependencies>
         <dependency>
             <groupId>junit</groupId>
