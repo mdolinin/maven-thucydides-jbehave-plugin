@@ -8,5 +8,5 @@ Given the scenario with two uno and dos parameters also works
 And the scenario with two uno and dos parameters also works
 Then user should see title with: 'Google'
 
-Scenario: A second scenario that works with $parameter
+Scenario: A scenario that has own $parameter inside
 Given I have an implemented JBehave scenario with one param

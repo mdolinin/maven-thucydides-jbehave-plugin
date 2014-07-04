@@ -1,5 +1,6 @@
 package net.thucydides.maven.plugin;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
@@ -13,6 +14,7 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 
 import static org.fest.assertions.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
 
 public class WhenGenerateScenarioStepsForEachStoryFile {
 
@@ -22,6 +24,7 @@ public class WhenGenerateScenarioStepsForEachStoryFile {
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     File outputDirectory;
+    File expectedFilesDirectory;
     MavenProject project = null;
     File testClassesDirectory;
     File classesDirectory;
@@ -41,13 +44,20 @@ public class WhenGenerateScenarioStepsForEachStoryFile {
         plugin.project = project;
         plugin.packageForScenarioSteps = "net.thucydides.maven.plugin.test";
         plugin.storiesDirectory = getResourcesAt("/stories");
+        expectedFilesDirectory = getResourcesAt("/sample-output/net/thucydides/maven/plugin/test");
     }
 
     @Test
-    public void should_create_scenario_steps_class_for_each_story_file() throws MojoExecutionException, MojoFailureException {
+    public void should_create_scenario_steps_class_for_each_story_file() throws MojoExecutionException, MojoFailureException, IOException {
         plugin.execute();
         File destinationDirectory = new File(outputDirectory, plugin.packageForScenarioSteps.replaceAll("\\.", "/"));
-        assertThat(destinationDirectory.list(javaFiles())).hasSize(2);
+        String[] generatedFileNames = destinationDirectory.list(javaFiles());
+        assertThat(generatedFileNames).hasSize(2);
+        for(String fileName : generatedFileNames) {
+            File actualFile = new File(destinationDirectory, fileName);
+            File expectedFile = new File(expectedFilesDirectory, fileName);
+            assertEquals(FileUtils.readLines(actualFile), FileUtils.readLines(expectedFile));
+        }
     }
 
     private FilenameFilter javaFiles() {

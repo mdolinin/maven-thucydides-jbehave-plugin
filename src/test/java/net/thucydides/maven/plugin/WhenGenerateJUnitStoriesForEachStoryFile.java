@@ -1,5 +1,6 @@
 package net.thucydides.maven.plugin;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.junit.Before;
 import org.junit.Rule;
@@ -11,6 +12,7 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 
 import static org.fest.assertions.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
 
 public class WhenGenerateJUnitStoriesForEachStoryFile {
 
@@ -20,6 +22,7 @@ public class WhenGenerateJUnitStoriesForEachStoryFile {
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     File outputDirectory;
+    File expectedFilesDirectory;
 
     @Before
     public void setupPlugin() throws IOException {
@@ -29,13 +32,20 @@ public class WhenGenerateJUnitStoriesForEachStoryFile {
         plugin.outputDirectory = outputDirectory;
         plugin.packageForStoryStubs = "net.thucydides.test";
         plugin.storiesDirectory = getResourcesAt("/stories");
+        expectedFilesDirectory = getResourcesAt("/sample-output/net/thucydides/test");
     }
 
     @Test
-    public void should_create_junit_stories_class_for_each_story_file() throws MojoExecutionException {
+    public void should_create_junit_stories_class_for_each_story_file() throws MojoExecutionException, IOException {
         plugin.execute();
         File destinationDirectory = new File(outputDirectory, plugin.packageForStoryStubs.replaceAll("\\.", "/"));
-        assertThat(destinationDirectory.list(javaFiles())).hasSize(2);
+        String[] generatedFileNames = destinationDirectory.list(javaFiles());
+        assertThat(generatedFileNames).hasSize(2);
+        for(String fileName : generatedFileNames) {
+            File actualFile = new File(destinationDirectory, fileName);
+            File expectedFile = new File(expectedFilesDirectory, fileName);
+            assertEquals(FileUtils.readLines(actualFile), FileUtils.readLines(expectedFile));
+        }
     }
 
     private FilenameFilter javaFiles() {
