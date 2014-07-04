@@ -23,7 +23,7 @@ and define project.junit.stories.package(where to put generated stubs) in proper
   <plugin>
       <groupId>net.thucydides.maven.plugin</groupId>
       <artifactId>maven-thucydides-jbehave-plugin</artifactId>
-      <version>0.9.223-SNAPSHOT</version>
+      <version>0.9.223</version>
       <executions>
           <execution>
               <goals>
@@ -35,3 +35,4 @@ and define project.junit.stories.package(where to put generated stubs) in proper
 ```
 
 #### [Article where and how to use this goal](http://mdolinin.github.io/blog/2014/01/17/thucydides-plus-jbehave-plus-maven-run-tests-in-parallel/) 
+#### [Compiled jar and pom](https://github.com/mdolinin/maven-thucydides-jbehave-plugin/releases)
