@@ -1,13 +1,15 @@
 maven-thucydides-jbehave-plugin
 ===============================
 
-Maven plugin for generate junit story stubs from jbehave story files
+Maven plugin for generate junit story stubs and scenario-steps from jbehave story files.
 
 ## Build
 
     mvn clean install
 
-## Usage
+#### [Compiled jar and pom](https://github.com/mdolinin/maven-thucydides-jbehave-plugin/releases)
+
+## Usage of generate-sources goal
 
 To use it add to your pom.xml build section with goal generate-sources 
 and define project.junit.stories.package(where to put generated stubs) in properties section.
@@ -35,4 +37,24 @@ and define project.junit.stories.package(where to put generated stubs) in proper
 ```
 
 #### [Article where and how to use this goal](http://mdolinin.github.io/blog/2014/01/17/thucydides-plus-jbehave-plus-maven-run-tests-in-parallel/) 
-#### [Compiled jar and pom](https://github.com/mdolinin/maven-thucydides-jbehave-plugin/releases)
+
+## Usage of generate-steps goal
+
+To use it add to your pom.xml build section with goal generate-steps. 
+
+```xml
+  <plugin>
+      <groupId>net.thucydides.maven.plugin</groupId>
+      <artifactId>maven-thucydides-jbehave-plugin</artifactId>
+      <version>0.9.223</version>
+      <executions>
+          <execution>
+              <goals>
+                  <goal>generate-steps</goal>
+              </goals>
+          </execution>
+      </executions>
+  </plugin>
+```
+
+#### [Article where and how to use this goal](http://mdolinin.github.io/blog/2014/07/07/thucydides-plus-jbehave-plus-maven-generate-new-steps-from-scenarios/)
