@@ -10,6 +10,7 @@ import net.thucydides.core.Thucydides;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.ClassUtils;
+import org.apache.maven.plugin.logging.Log;
 import org.jbehave.core.annotations.When;
 import org.reflections.Reflections;
 
@@ -56,7 +57,7 @@ public class GenerateStepsApp {
     private static JClass rawThucydidesClass;
     private static JClass modelAssertionErrorClass;
 
-    public void init(String packageForScenarioSteps, ClassLoader classLoader, File outputDir) throws ClassNotFoundException, JClassAlreadyExistsException, IOException {
+    public void init(String packageForScenarioSteps, ClassLoader classLoader, File outputDir, Log log) throws ClassNotFoundException, JClassAlreadyExistsException, IOException {
 
         Reflections reflections = new Reflections(packageForScenarioSteps, classLoader);
 
@@ -91,7 +92,6 @@ public class GenerateStepsApp {
             for (Method method : declaredMethods) {
                 if (method.getParameterTypes().length == 0) {
                     getWebEndpointMethods.add(method);
-                    logger.info("remove methods with parameters , method=" + method.toGenericString());
                 }
             }
             for (Method getWebEndpointMethod : getWebEndpointMethods) {
@@ -319,15 +319,15 @@ public class GenerateStepsApp {
             jTryBlock.body()._return(JExpr.cast(refXMLGregorianCalendarClass, getCurrentSession.arg(key)));
             jTryBlock._catch(modelAssertionErrorClass).body()._return(refDataTypeFactoryClass.staticInvoke("newInstance").invoke("newXMLGregorianCalendar").arg(key));
             getVariableAsXMLGregorianCalendar._throws(DatatypeConfigurationException.class);
+            log.info("Class " + serviceStepsRawClass.fullName() + " created");
 
         }
 
         //generate java files from model
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         codeModel.build(new SingleStreamCodeWriter(out));
-        logger.info("outputDir.getCanonicalPath() = " + outputDir.getCanonicalPath());
         boolean isCreated = new File(outputDir.getCanonicalPath()).mkdir();
-        logger.info(" Create " +outputDir.getCanonicalPath() + " = isCreated");
+
         codeModel.build(new FileCodeWriter(new File(outputDir.getCanonicalPath())));
     }
 

@@ -6,6 +6,7 @@ import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 
 import java.io.File;
@@ -18,7 +19,7 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 /**
- * @goal generate-soap-test
+ * @goal generate-soap-steps
  * @phase process-test-resources
  */
 public class GenerateSoapStepsMojo extends AbstractMojo {
@@ -70,14 +71,15 @@ public class GenerateSoapStepsMojo extends AbstractMojo {
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         GenerateStepsApp stepsApp = new GenerateStepsApp();
+        Log log = getLog();
         try {
-            stepsApp.init(packageForSoapSteps, getClassLoader(), outputDirectory);
+            stepsApp.init(packageForSoapSteps, getClassLoader(), outputDirectory, log);
         } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+            log.error(e.getMessage(), e);
         } catch (JClassAlreadyExistsException e) {
-            e.printStackTrace();
+            log.error(e.getMessage(), e);
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error(e.getMessage(), e);
         }
     }
 
@@ -113,7 +115,6 @@ public class GenerateSoapStepsMojo extends AbstractMojo {
     private ClassLoader getClassLoader() throws MojoFailureException, MojoExecutionException {
         ClassLoader pluginClassLoader = getClass().getClassLoader();
         Set<URL> projectClasspathList = getUrlsForCustomClasspath();
-        logger.info("getUrlsForCustomClasspath = " + getUrlsForCustomClasspath());
         ClassLoader projectClassLoader = new URLClassLoader(
                 projectClasspathList.toArray(
                         new URL[projectClasspathList.size()]), pluginClassLoader);
