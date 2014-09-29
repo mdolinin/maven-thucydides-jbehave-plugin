@@ -1,8 +1,8 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <artifactId>thucydides</artifactId>
         <groupId>net.thucydides</groupId>
+        <artifactId>thucydides</artifactId>
         <version>0.9.222</version>
     </parent>
     <groupId>net.thucydides.maven.plugin</groupId>
@@ -15,7 +15,8 @@
         <developerConnection>scm:git:git@github.com:mdolinin/maven-thucydides-jbehave-plugin.git</developerConnection>
         <url>scm:git:git@github.com:mdolinin/maven-thucydides-jbehave-plugin.git</url>
     </scm>
-    <dependencies>
+
+     <dependencies>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -36,6 +37,26 @@
             <groupId>net.thucydides</groupId>
             <artifactId>thucydides-jbehave-plugin</artifactId>
             <version>0.9.222</version>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.xml.bind</groupId>
+            <artifactId>jaxb-xjc</artifactId>
+            <version>2.2.10-b140310.1920</version>
+        </dependency>
+        <dependency>
+            <groupId>org.reflections</groupId>
+            <artifactId>reflections</artifactId>
+            <version>0.9.9-RC1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>jsr305</artifactId>
+            <version>1.3.9</version>
+        </dependency>
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-core</artifactId>
+            <version>1.3</version>
         </dependency>
     </dependencies>
 </project>

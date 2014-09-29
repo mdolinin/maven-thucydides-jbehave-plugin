@@ -61,4 +61,6 @@ public class WhenGenerateJUnitStoriesForEachStoryFile {
     private File getResourcesAt(String path) {
         return new File(getClass().getResource(path).getFile());
     }
+
+
 }
