@@ -327,7 +327,6 @@ public class GenerateStepsApp {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         codeModel.build(new SingleStreamCodeWriter(out));
         boolean isCreated = new File(outputDir.getCanonicalPath()).mkdir();
-
         codeModel.build(new FileCodeWriter(new File(outputDir.getCanonicalPath())));
     }
 

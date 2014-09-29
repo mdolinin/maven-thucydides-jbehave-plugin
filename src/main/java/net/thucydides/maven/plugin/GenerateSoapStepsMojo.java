@@ -25,6 +25,8 @@ import java.util.logging.Logger;
 public class GenerateSoapStepsMojo extends AbstractMojo {
     private final static Logger logger = Logger.getLogger(GenerateSoapStepsMojo.class.getName());
 
+
+
     /**
      * The directory containing generated classes of the project being tested. This will be included after the test
      * classes in the test classpath.
@@ -42,6 +44,10 @@ public class GenerateSoapStepsMojo extends AbstractMojo {
      */
     public String packageForSoapSteps;
 
+    public void setOutputDirectory(File outputDirectory) {
+        this.outputDirectory = outputDirectory;
+    }
+
     /**
      * Location of the file.
      *
@@ -50,7 +56,16 @@ public class GenerateSoapStepsMojo extends AbstractMojo {
      */
     private File outputDirectory;
 
+    public void setProject(MavenProject project) {
+        this.project = project;
+    }
+
+    public void setPackageForSoapSteps(String packageForSoapSteps) {
+        this.packageForSoapSteps = packageForSoapSteps;
+    }
+
     /**
+
      * The Maven Project.
      *
      * @parameter expression="${project}"
@@ -58,6 +73,10 @@ public class GenerateSoapStepsMojo extends AbstractMojo {
      * @readonly
      */
     private MavenProject project;
+
+    public void setTestClassesDirectory(File testClassesDirectory) {
+        this.testClassesDirectory = testClassesDirectory;
+    }
 
     /**
      * The directory containing generated test classes of the project being tested. This will be included at the
@@ -125,12 +144,17 @@ public class GenerateSoapStepsMojo extends AbstractMojo {
         return classesDirectory;
     }
 
+
     private File getTestClassesDirectory() {
         return testClassesDirectory;
     }
 
     private MavenProject getProject() {
         return project;
+    }
+
+    public void setClassesDirectory(File classesDirectory) {
+        this.classesDirectory = classesDirectory;
     }
 
 }

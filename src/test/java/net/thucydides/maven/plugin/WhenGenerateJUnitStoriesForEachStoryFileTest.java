@@ -2,8 +2,6 @@ package net.thucydides.maven.plugin;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.project.MavenProject;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -16,41 +14,31 @@ import java.io.IOException;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 
-public class WhenGenerateScenarioStepsForEachStoryFile {
+public class WhenGenerateJUnitStoriesForEachStoryFileTest {
 
-    private GenerateScenarioStepsMojo plugin;
+    private GenerateThucydidesJUnitStoriesMojo plugin;
 
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     File outputDirectory;
     File expectedFilesDirectory;
-    MavenProject project = null;
-    File testClassesDirectory;
-    File classesDirectory;
-
 
     @Before
     public void setupPlugin() throws IOException {
         outputDirectory = temporaryFolder.newFolder("sample-output");
-        classesDirectory = new File("./target/classes");
-        testClassesDirectory = new File("./target/test-classes");
-        project = new MavenProject();
 
-        plugin = new GenerateScenarioStepsMojo();
+        plugin = new GenerateThucydidesJUnitStoriesMojo();
         plugin.outputDirectory = outputDirectory;
-        plugin.classesDirectory = classesDirectory;
-        plugin.testClassesDirectory = testClassesDirectory;
-        plugin.project = project;
-        plugin.packageForScenarioSteps = "net.thucydides.maven.plugin.test";
+        plugin.packageForStoryStubs = "net.thucydides.test";
         plugin.storiesDirectory = getResourcesAt("/stories");
-        expectedFilesDirectory = getResourcesAt("/sample-output/net/thucydides/maven/plugin/test");
+        expectedFilesDirectory = getResourcesAt("/sample-output/net/thucydides/test");
     }
 
     @Test
-    public void should_create_scenario_steps_class_for_each_story_file() throws MojoExecutionException, MojoFailureException, IOException {
+    public void should_create_junit_stories_class_for_each_story_file() throws MojoExecutionException, IOException {
         plugin.execute();
-        File destinationDirectory = new File(outputDirectory, plugin.packageForScenarioSteps.replaceAll("\\.", "/"));
+        File destinationDirectory = new File(outputDirectory, plugin.packageForStoryStubs.replaceAll("\\.", "/"));
         String[] generatedFileNames = destinationDirectory.list(javaFiles());
         assertThat(generatedFileNames).hasSize(2);
         for(String fileName : generatedFileNames) {
@@ -73,4 +61,6 @@ public class WhenGenerateScenarioStepsForEachStoryFile {
     private File getResourcesAt(String path) {
         return new File(getClass().getResource(path).getFile());
     }
+
+
 }
