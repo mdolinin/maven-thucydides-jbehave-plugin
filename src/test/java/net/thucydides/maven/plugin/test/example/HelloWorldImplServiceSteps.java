@@ -1,14 +1,13 @@
 
 package net.thucydides.maven.plugin.test.example;
 
-import net.thucydides.core.Thucydides;
-import org.jbehave.core.annotations.When;
-
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
-import java.math.BigDecimal;
-import java.math.BigInteger;
+import net.thucydides.core.Thucydides;
+import org.jbehave.core.annotations.When;
 
 public class HelloWorldImplServiceSteps {
 
