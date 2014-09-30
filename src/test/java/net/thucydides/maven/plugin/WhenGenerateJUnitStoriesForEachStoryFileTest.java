@@ -14,7 +14,7 @@ import java.io.IOException;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 
-public class WhenGenerateJUnitStoriesForEachStoryFile {
+public class WhenGenerateJUnitStoriesForEachStoryFileTest {
 
     private GenerateThucydidesJUnitStoriesMojo plugin;
 
@@ -61,4 +61,6 @@ public class WhenGenerateJUnitStoriesForEachStoryFile {
     private File getResourcesAt(String path) {
         return new File(getClass().getResource(path).getFile());
     }
+
+
 }

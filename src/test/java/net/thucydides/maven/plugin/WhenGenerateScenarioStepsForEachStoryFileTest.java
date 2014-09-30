@@ -16,7 +16,7 @@ import java.io.IOException;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 
-public class WhenGenerateScenarioStepsForEachStoryFile {
+public class WhenGenerateScenarioStepsForEachStoryFileTest {
 
     private GenerateScenarioStepsMojo plugin;
 
