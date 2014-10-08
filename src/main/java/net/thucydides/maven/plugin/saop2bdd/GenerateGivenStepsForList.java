@@ -15,9 +15,6 @@ import java.util.Set;
 
 import static net.thucydides.maven.plugin.saop2bdd.GenerateStepsApp.*;
 
-/**
- * Created by mdolinin on 8/11/14.
- */
 public class GenerateGivenStepsForList {
     private JCodeModel codeModel;
     private JDefinedClass serviceStepsRawClass;
@@ -28,10 +25,18 @@ public class GenerateGivenStepsForList {
         this.serviceStepsRawClass = serviceStepsRawClass;
     }
 
+//    private JClass genarateSimilarToClazz(JCodeModel codeModel,Class<?> type, String nameClazz, String packageName) {
+//        GenerateSimilarToClass similarToClass = new GenerateSimilarToClass();
+//        return similarToClass.createGenerateSimilarToClazz(codeModel, type, nameClazz,packageName );
+//    }
+
     public void generateFor(Class<?> rawClass, Class<?> genericClass, String name, String key) {
         if (types.contains(genericClass)) {
             return;
         }
+
+//        JClass refCustomMatcherSimilarTo = genarateSimilarToClazz(codeModel, rawClass, key, serviceStepsRawClass.getPackage().name());
+
         //create model of our classes
         JClass modelRawClass = codeModel.ref(rawClass);
         JClass modelGenericClass = codeModel.ref(genericClass);

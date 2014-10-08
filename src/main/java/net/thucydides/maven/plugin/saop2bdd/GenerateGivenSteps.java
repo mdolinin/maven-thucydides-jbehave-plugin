@@ -22,9 +22,6 @@ import static org.apache.commons.lang3.StringUtils.capitalize;
 import static org.apache.commons.lang3.StringUtils.uncapitalize;
 import static net.thucydides.maven.plugin.saop2bdd.GenerateStepsApp.*;
 
-/**
- * Created by mdolinin on 8/11/14.
- */
 public class GenerateGivenSteps {
     private JCodeModel codeModel;
     private JDefinedClass serviceStepsRawClass;

@@ -113,7 +113,7 @@ public class GenerateStepsApp {
                     Type genericReturnType = webServiceMethod.getGenericReturnType();
                     Class genericReturnTypeClass = null;
                     if (genericReturnType instanceof ParameterizedType) {
-                        genericReturnTypeClass = (Class) ((ParameterizedType) genericReturnType).getActualTypeArguments()[0];
+                        genericReturnTypeClass = (Class) ((ParameterizedType) genericReturnType).getActualTypeArguments()[0];//
                         JClass modelActualReturnTypeClass = codeModel.ref(genericReturnTypeClass);
                         //narrow class by its generic type
                         modelWebServiceResponseClass = modelWebServiceResponseClass.narrow(modelActualReturnTypeClass);
@@ -171,6 +171,9 @@ public class GenerateStepsApp {
 
                     //add save to part to annotation
                     String webServiceResponseTypeNameKey = webServiceResponseTypeName + "Key";
+                    //webServiceResponseIgnoreFields
+
+
                     stepPattern += " and save response to $" + webServiceResponseTypeNameKey;
                     //add response key to method
                     whenMethod.param(String.class, webServiceResponseTypeNameKey);
@@ -181,7 +184,7 @@ public class GenerateStepsApp {
                         //save response to test session
                         whenMethod.body().add(JExpr.invoke(SAVE).arg(JExpr.ref(webServiceResponseTypeNameKey)).arg(JExpr.ref(webServiceResponseTypeName)));
                         givenStepsGenerator.generateFor(webServiceResponseClass, webServiceResponseTypeName, webServiceResponseTypeNameKey);
-                        thenStepsGenerator.generateFor(webServiceResponseClass, webServiceResponseTypeName, webServiceResponseTypeNameKey);
+                        thenStepsGenerator.generateFor(webServiceResponseClass, webServiceResponseTypeName, webServiceResponseTypeNameKey, outputDir);
                     } else {
                         whenMethod.body().add(callWebservice);
                     }
