@@ -47,7 +47,7 @@ public class GenerateThenSteps {
         if (isSimple(type)) {
             return;
         }
-
+        System.out.println("TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT");
         JClass refCustomMatcherSimilarTo = genarateSimilarToClazz(codeModel, type, key, serviceStepsRawClass.getPackage().name());
 
         //create model of our web service class

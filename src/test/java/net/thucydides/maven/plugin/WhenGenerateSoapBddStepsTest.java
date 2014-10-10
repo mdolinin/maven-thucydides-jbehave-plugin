@@ -29,6 +29,7 @@ public class WhenGenerateSoapBddStepsTest {
         plugin.setOutputDirectory(new File("./target/generated-test-sources"));
         plugin.setOutputDirectory(outputDirectory);
         plugin.setPackageForSoapSteps("net.thucydides.maven.plugin.test.example");
+//        plugin.setPackageForSoapSteps("engagepoint.billing.paymentrequestservice._1");
         plugin.setClassesDirectory(new File("net.thucydides.test"));
         plugin.setTestClassesDirectory(new File("./target/"));
         plugin.setProject(new MavenProject());

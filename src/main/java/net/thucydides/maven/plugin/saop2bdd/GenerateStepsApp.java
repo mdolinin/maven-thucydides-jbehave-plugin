@@ -108,7 +108,12 @@ public class GenerateStepsApp {
                 for (Method webServiceMethod : webServiceMethods) {
                     //create code model for webservice response
                     Class<?> webServiceResponseClass = webServiceMethod.getReturnType();
-                    JClass modelWebServiceResponseClass = codeModel.ref(ClassUtils.primitiveToWrapper(webServiceResponseClass));
+                    JClass modelWebServiceResponseClass = null;
+                    if (webServiceResponseClass.getName().equals(void.class.getName())) {
+                        modelWebServiceResponseClass = codeModel.ref(Void.class);
+                    } else {
+                        modelWebServiceResponseClass = codeModel.ref(ClassUtils.primitiveToWrapper(webServiceResponseClass));
+                    }
                     //resolve generic types
                     Type genericReturnType = webServiceMethod.getGenericReturnType();
                     Class genericReturnTypeClass = null;
@@ -142,12 +147,18 @@ public class GenerateStepsApp {
                         JClass modelParameterClass = codeModel.ref(ClassUtils.primitiveToWrapper(parameterClass));
                         Type genericParameterType = genericParameterTypes[i];
                         Class<?> genericParameterTypeClass = null;
-                        if (genericParameterType instanceof ParameterizedType) {
-                            genericParameterTypeClass = (Class) ((ParameterizedType) genericReturnType).getActualTypeArguments()[0];
-                            JClass modelGenericParameterTypeClass = codeModel.ref(genericReturnTypeClass);
-                            //narrow class by its generic type
-                            modelParameterClass = modelParameterClass.narrow(modelGenericParameterTypeClass);
+                        //TODO Unknown lava.lang.Class cannot cast to ParameterizedType
+                        try {
+                            if (genericParameterType instanceof ParameterizedType) {
+                                genericParameterTypeClass = (Class) ((ParameterizedType) genericReturnType).getActualTypeArguments()[0];
+                                JClass modelGenericParameterTypeClass = codeModel.ref(genericReturnTypeClass);
+                                //narrow class by its generic type
+                                modelParameterClass = modelParameterClass.narrow(modelGenericParameterTypeClass);
+                            }
+                        } catch (ClassCastException ex) {
+                            continue;
                         }
+
                         String parameterName = getWebParamName(parameterAnnotations[i]);
                         String parameterKeyName = parameterName + "Key";
                         whenMethod.param(String.class, parameterKeyName);
