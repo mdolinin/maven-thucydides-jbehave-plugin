@@ -10,6 +10,7 @@ import org.jbehave.core.annotations.Given;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
@@ -49,7 +50,10 @@ public class GenerateGivenSteps {
         JMethod givenMethod = serviceStepsRawClass.method(JMod.PUBLIC, Void.TYPE,
                 getVariableName(Given.class) +
                         StringUtils.capitalize(stepMethodName));
-
+//        if (!bigDecimalAptcKey.isEmpty()) {
+//            BigDecimal bigDecimalAptc = getVariableAsBigDecimal(bigDecimalAptcKey);
+//            getAccountSummaryYTDResponse.setAptc(bigDecimalAptc);
+//        }
         //create jbehave annotation
         String stepPattern = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, stepMethodName).replaceAll("_", " ");
 
@@ -68,12 +72,15 @@ public class GenerateGivenSteps {
             Type fieldGenericType = field.getGenericType();
             Class<?> fieldGenericClass = null;
             JClass modelFieldClass = codeModel.ref(ClassUtils.primitiveToWrapper(fieldClass));
+
             //resolve generic types
             if (fieldGenericType instanceof ParameterizedType) {
                 fieldGenericClass = (Class) ((ParameterizedType) fieldGenericType).getActualTypeArguments()[0];
                 JClass modelGenericParameterTypeClass = codeModel.ref(fieldGenericClass);
                 //narrow class by its generic type
                 modelFieldClass = modelFieldClass.narrow(modelGenericParameterTypeClass);
+
+
             }
             fieldName = uncapitalize(fieldClass.getSimpleName()) + capitalize(fieldName);
             String localVariableParameterName = fieldName;
@@ -88,7 +95,14 @@ public class GenerateGivenSteps {
             addGetValueFromVariable(codeModel, serviceStepsRawClass, givenMethod, jConditional._then(), fieldClass, modelFieldClass, localVariableParameterName, fieldName);
             JInvocation callSetter;
             if (fieldGenericClass == null) {
-                callSetter = typeLocalVar.invoke("set" + capitalize(field.getName()));
+                Method[] methods = type.getMethods();
+                String goodMethodName = "";
+                for (Method method : methods) {
+                    if (method.getName().equalsIgnoreCase("set" + field.getName())) {
+                        goodMethodName = method.getName();
+                    }
+                }
+                callSetter = typeLocalVar.invoke(goodMethodName);
             } else {
                 String trimmedFieldName = field.getName().replaceFirst("_", "");
                 callSetter = typeLocalVar.invoke("get" + capitalize(trimmedFieldName)).invoke("addAll");

@@ -136,7 +136,6 @@ public class GenerateStepsApp {
                     String stepPattern = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, stepMethodName).replaceAll("_", " ");
                     //create call of webservice
                     JInvocation callWebservice = proxyField.invoke(stepMethodName);
-
                     //find method parameters and add
                     Class<?>[] parameterTypes = webServiceMethod.getParameterTypes();
                     Type[] genericParameterTypes = webServiceMethod.getGenericParameterTypes();
@@ -147,7 +146,7 @@ public class GenerateStepsApp {
                         JClass modelParameterClass = codeModel.ref(ClassUtils.primitiveToWrapper(parameterClass));
                         Type genericParameterType = genericParameterTypes[i];
                         Class<?> genericParameterTypeClass = null;
-                        //TODO Unknown lava.lang.Class cannot cast to ParameterizedType
+
                         try {
                             if (genericParameterType instanceof ParameterizedType) {
                                 genericParameterTypeClass = (Class) ((ParameterizedType) genericReturnType).getActualTypeArguments()[0];
@@ -156,7 +155,11 @@ public class GenerateStepsApp {
                                 modelParameterClass = modelParameterClass.narrow(modelGenericParameterTypeClass);
                             }
                         } catch (ClassCastException ex) {
-                            continue;
+                            int beginName = genericParameterType.toString().lastIndexOf(".") + 1;
+                            int endName = genericParameterType.toString().length() - 1;
+                            String parameterType = genericParameterType.toString().substring(beginName, endName);
+                            modelParameterClass = modelParameterClass.narrow(codeModel.ref(parameterType));
+                            logger.warning(ex.getMessage());
                         }
 
                         String parameterName = getWebParamName(parameterAnnotations[i]);
