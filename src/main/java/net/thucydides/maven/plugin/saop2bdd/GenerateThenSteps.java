@@ -47,7 +47,7 @@ public class GenerateThenSteps {
         if (isSimple(type)) {
             return;
         }
-        System.out.println("TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT");
+        System.out.println("JClass refCustomMatcherSimilarTo = genarateSimilarToClazz");
         JClass refCustomMatcherSimilarTo = genarateSimilarToClazz(codeModel, type, key, serviceStepsRawClass.getPackage().name());
 
         //create model of our web service class
@@ -94,7 +94,7 @@ public class GenerateThenSteps {
 
 //        thenMethod.body().add(refAssert.staticInvoke("assertThat").arg(JExpr.ref(actualValue)).arg(refCoreMatchers.staticInvoke("is").arg(JExpr.ref(expectedValue))));
 
-        thenMethod.body().add(refAssert.staticInvoke("assertThat").arg(JExpr.ref(actualValue)).arg(refCustomMatcherSimilarTo.staticInvoke("similarTo").arg(JExpr.ref(expectedValue))));
+        thenMethod.body().add(refAssert.staticInvoke("assertThat").arg(JExpr.ref(actualValue)).arg(refCustomMatcherSimilarTo.staticInvoke("similarTo").arg(JExpr.ref(expectedValue)).invoke("exclude").arg(JExpr.ref("fields"))));
 
         //add save to part to annotation
         stepPattern += " is equal to $" + expectedValueKey + " and ignore $fields";

@@ -2,6 +2,7 @@ package net.thucydides.maven.plugin.saop2bdd;
 
 import com.sun.codemodel.*;
 import org.apache.commons.lang3.ClassUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.hamcrest.Description;
 import org.hamcrest.Factory;
 import org.hamcrest.TypeSafeMatcher;
@@ -22,6 +23,8 @@ public class GenerateSimilarToClass {
     public static final String ACTUAL_ROW = "actualRow";
     public static final String KEY = "key";
     public static final String EXPECTED_ROW = "expectedRow";
+    public static final String EXPECTED_DATA = "expectedData";
+    public static final String ACTUAL_DATA = "actualData";
     public static final String RESPONSE_KEY = "ResponseKey";
     public static final String EXPECTED_RESPONSE = "expectedResponse";
     public static final String ACTUAL_RESPONSE = "actualResponse";
@@ -42,8 +45,6 @@ public class GenerateSimilarToClass {
     public JClass createGenerateSimilarToClazz(JCodeModel codeModel, Class<?> type, String nameClazz, String packageName) {
         try {
             JClass ref = codeModel.ref(Void.class);
-            System.out.println("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE");
-            logger.info("LOGGER+++++++++++++++++++++++");
             String originalNameClass = getOrifinalName(nameClazz);
             initModel(type, codeModel, packageName, originalNameClass);
         } catch (JClassAlreadyExistsException e) {
@@ -51,14 +52,14 @@ public class GenerateSimilarToClass {
         }
         createConstructorSimilarToClazz(type);
         createExcludeListField();
-        createDataField("actualData");
-        createDataField("expectedData");
+        createDataField(ACTUAL_DATA);
+        createDataField(EXPECTED_DATA);
         createExpectedResponseFiled(type);
         createExcludeMethod(arrayListClazz, excludeListField);
         createSimilarToMethod(type);
         createMatchesSafelyMethod(type);
         createDescribeMismatchSafely(type);
-        createDescribeToMethod();
+        createDescribeToMethod(type);
         return definedClass;
 
     }
@@ -94,27 +95,8 @@ public class GenerateSimilarToClass {
         dataField.init(newInstance);
     }
 
-    public void createDeclarationDataField(String fieldName, Class<?> dataTypeClass) {
-        JClass dataDeclarationClazz = codeModel.ref(dataTypeClass);
-        JFieldVar dataField = definedClass.field(JMod.PRIVATE, dataDeclarationClazz, fieldName);
-    }
-
-    public void createInstantiationDataField(String name) {
-        JClass dataDeclarationClazz = codeModel.ref(Map.class);
-        JClass narrowDataDeclarationClazz = dataDeclarationClazz.narrow(String.class, String.class);
-        JClass dataInstantiationClazz = codeModel.ref(LinkedHashMap.class);
-        JClass narrowDataInstantiationClazz = dataInstantiationClazz.narrow(String.class, String.class);
-        JExpression newInstance = JExpr._new(narrowDataInstantiationClazz);
-        String fieldName = name;
-        JFieldVar dataField = definedClass.field(JMod.PRIVATE, narrowDataDeclarationClazz, fieldName);
-        dataField.init(newInstance);
-    }
-
     public void createExcludeListField() {
-        //Create  JClass Model List
-        //Parametrize class to string
-        //Create excludeListField List<String> listToExclude
-        rawArrayListClass = codeModel.ref(ArrayList.class);
+        rawArrayListClass = codeModel.ref(List.class);
         arrayListClazz = rawArrayListClass.narrow(String.class);
         excludeListField = definedClass.field(JMod.PRIVATE, arrayListClazz, "listToExclude");
 
@@ -124,19 +106,17 @@ public class GenerateSimilarToClass {
         this.codeModel = model;
         JClass refTypeSafeMatcher = codeModel.ref(TypeSafeMatcher.class);
         JClass similarToListClazzWithGeneric = refTypeSafeMatcher.narrow(type);
-        System.out.println("serviceStepsRawClass = " + packageName);
         String responseClassName = type.getName();
-        System.out.println("responseClassName = " + responseClassName);
         definedClass = codeModel._class(packageName + "." + originalNameClass + CUSTOM_MATCHER_SIMILAR_TO_CLASS_NAME)._extends(similarToListClazzWithGeneric);
 
     }
 
     public void createExcludeMethod(JClass arrayListClazz, JFieldVar fieldExcludeList) {
         JMethod excludeMethod = definedClass.method(JMod.PUBLIC, definedClass, "exclude");
-        String paramEcludeMethod = "listToExclude";
-        excludeMethod.param(arrayListClazz, paramEcludeMethod);
+        String paramExcludeMethod = "listToExclude";
+        excludeMethod.param(arrayListClazz, paramExcludeMethod);
         JBlock blockEclude = excludeMethod.body();
-        excludeMethod.body().assign(JExpr._this().ref(fieldExcludeList), JExpr.ref(paramEcludeMethod));
+        excludeMethod.body().assign(JExpr._this().ref(fieldExcludeList), JExpr.ref(paramExcludeMethod));
         blockEclude._return(JExpr._this());
     }
 
@@ -161,98 +141,76 @@ public class GenerateSimilarToClass {
         matchesSafelyMethod.param(type, ACTUAL_RESPONSE);
         matchesSafelyMethod.annotate(Override.class);
         JBlock blockMatchesSafely = matchesSafelyMethod.body();
-        System.out.println("+++++++++++++++++++++++++++-----------------++++++++++++++++++++");
         mainBody(type, ACTUAL_RESPONSE, EXPECTED_RESPONSE, blockMatchesSafely, null);
         blockMatchesSafely._return(JExpr.ref("expectedData").invoke("isEmpty").cand(JExpr.ref("actualData").invoke("isEmpty")));
     }
 
-    private JExpression createMsgForExceprion() {
-        JExpression msg = null;
-        String explain = null;
+    private JExpression createMsgForEqualsCondition(String name) {
+        JExpression exp = null;
+        name = name.substring(3);
         if (countArraySymbol == 0) {
-            explain = "";
-            return msg = JExpr.lit(explain);
-        } else {
-            explain = " in row ";
-            return msg = JExpr.lit(explain).plus(JExpr.ref(counterSymbol[countArraySymbol]));
+            exp = JExpr.lit(name + " ");
         }
+        if (countArraySymbol == 1) {
+            exp = JExpr.lit(name + " in row ").plus(JExpr.ref(counterSymbol[countArraySymbol]));
+        }
+        if (countArraySymbol == 2) {
+            exp = JExpr.lit(name + " in row ").plus(JExpr.ref(counterSymbol[1])).plus(JExpr.ref(counterSymbol[2]));
+        }
+        if (countArraySymbol == 3) {
+            exp = JExpr.lit(name + " in row ").plus(JExpr.ref(counterSymbol[1])).plus(JExpr.ref(counterSymbol[2])).plus(JExpr.ref(counterSymbol[3]));
+        }
+        return exp;
     }
 
 
     private void mainBody(Class<?> type, String paramActual, String paramExpected, JBlock block, Method superMethod) {
-        System.out.println("mainBody");
         Class<?> classNameGenericReturnType = null;
         if (type.getName().equals(void.class.getName())) {
-            System.out.println("WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW");
-            System.out.println("WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW");
-            System.out.println("WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW");
             return;
         }
         Method[] methods = type.getMethods();
         for (Method method : methods) {
             String fieldName = null;
-            System.out.println("method name = " + method.getName());
             if (isGetMethod(method)) {
                 Class<?> methodReturnType = method.getReturnType();
-                if (isSimpleType(methodReturnType)/* && !methodReturnType.getName().equals(void.class.getName())*/) {
+                if (isSimpleType(methodReturnType)) {
                     if (methodReturnType.isEnum()) {
-                        String explain = " in row111 ";
-                        JExpression msgForExceprion = createMsgForExceprion();
-                        System.err.println("block = " + block);
-                        JConditional condition = block._if(JExpr.ref(paramActual).invoke(method.getName()).invoke("equals").arg(JExpr.ref(paramExpected).invoke(method.getName())));
-                        System.err.println("condition = " + condition);
+                        JConditional condition = block._if(JExpr.ref(paramActual).invoke(method.getName()).invoke("equals").arg(JExpr.ref(paramExpected).invoke(method.getName())).not());
                         if (null != superMethod) {
-                            condition._then().add(
-                                    JExpr.ref("expectedData").invoke("put").arg(msgForExceprion).arg(JExpr.ref(paramExpected)/*.invoke(superMethod.getName())*/.invoke(method.getName()).invoke("toString"))).add(
-                                    JExpr.ref("actualData").invoke("put").arg(msgForExceprion).arg(JExpr.ref(paramActual)/*.invoke(superMethod.getName())*/.invoke(method.getName()).invoke("toString"))
-                            );
+                            condition._then()
+                                    .add(JExpr.ref("expectedData").invoke("put").arg(createMsgForEqualsCondition(method.getName())).arg(JExpr.ref(paramExpected).invoke(method.getName()).invoke("toString")))
+                                    .add(JExpr.ref("actualData").invoke("put").arg(createMsgForEqualsCondition(method.getName())).arg(JExpr.ref(paramActual).invoke(method.getName()).invoke("toString")));
                         } else {
-                            condition._then().add(
-                                    JExpr.ref("expectedData").invoke("put").arg(msgForExceprion).arg(JExpr.ref(paramExpected).invoke(method.getName()).invoke("toString"))).add(
-                                    JExpr.ref("actualData").invoke("put").arg(msgForExceprion).arg(JExpr.ref(paramActual).invoke(method.getName()).invoke("toString"))
-                            );
+                            condition._then()
+                                    .add(JExpr.ref("expectedData").invoke("put").arg(createMsgForEqualsCondition(method.getName())).arg(JExpr.ref(paramExpected).invoke(method.getName()).invoke("toString")))
+                                    .add(JExpr.ref("actualData").invoke("put").arg(createMsgForEqualsCondition(method.getName())).arg(JExpr.ref(paramActual).invoke(method.getName()).invoke("toString")));
                         }
                         continue;
                     }
-                    System.out.println(" begin isSimpleType methodReturnType = " + methodReturnType + " method name = " + method.getName());
+
                     fieldName = method.getName().substring(3);
+                    fieldName = makeFirstLetterLowerCase(fieldName);
                     String equalMethod = "compareTo";
-                    System.out.println("TYPE = " + type);
                     if (isXMLGregorianCalendar(methodReturnType)) {
                         equalMethod = "compare";
-                        JConditional condition = block._if(JExpr.ref(LIST_TO_EXCLUDE).invoke("contains").arg(fieldName).not()
-                                .cand(JExpr.ref(paramActual).invoke(method.getName()).invoke(equalMethod).arg(JExpr.ref(paramExpected).invoke(method.getName())).ne(JExpr.lit(0))));
-                        JExpression msgForExceprion = createMsgForExceprion();
-                        condition._then().add(
-                                JExpr.ref("expectedData").invoke("put").arg(msgForExceprion).arg(JExpr.ref(paramExpected).invoke(method.getName()).invoke("toString"))).add(
-                                JExpr.ref("actualData").invoke("put").arg(msgForExceprion).arg(JExpr.ref(paramActual).invoke(method.getName()).invoke("toString"))
-                        );
+
+                        createConditionBlockForExcludeList(block, paramActual, paramExpected, method, fieldName, equalMethod);
                     }
                     if (methodReturnType.isPrimitive()) {
-                        JExpression msgForExceprion = createMsgForExceprion();
-                        JConditional condition = block._if(JExpr.ref(LIST_TO_EXCLUDE).invoke("contains").arg(fieldName).not()
+                        JConditional condition = block._if(JExpr.ref(LIST_TO_EXCLUDE).invoke("contains").arg(fieldName)
+                                .not()
                                 .cand(JExpr.ref(paramActual).invoke(method.getName()).ne(JExpr.ref(paramExpected).invoke(method.getName()))));
-                        condition._then().add(
-                                JExpr.ref("expectedData").invoke("put").arg(msgForExceprion).arg(codeModel.ref(String.class).staticInvoke("valueOf").arg(JExpr.ref(paramExpected).invoke(method.getName())))).add(
-                                JExpr.ref("actualData").invoke("put").arg(msgForExceprion).arg(codeModel.ref(String.class).staticInvoke("valueOf").arg(JExpr.ref(paramActual).invoke(method.getName()))
-                                ));
+                        condition._then()
+                                .add(JExpr.ref("expectedData").invoke("put").arg(createMsgForEqualsCondition(method.getName())).arg(codeModel.ref(String.class).staticInvoke("valueOf").arg(JExpr.ref(paramExpected).invoke(method.getName()))))
+                                .add(JExpr.ref("actualData").invoke("put").arg(createMsgForEqualsCondition(method.getName())).arg(codeModel.ref(String.class).staticInvoke("valueOf").arg(JExpr.ref(paramActual).invoke(method.getName()))));
                     } else {
-                        JExpression msgForExceprion = createMsgForExceprion();
-                        JConditional condition = block._if(JExpr.ref(LIST_TO_EXCLUDE).invoke("contains").arg(fieldName).not()
-                                .cand(JExpr.ref(paramActual).invoke(method.getName()).invoke(equalMethod).arg(JExpr.ref(paramExpected).invoke(method.getName())).ne(JExpr.lit(0))));
-                        condition._then().add(
-                                JExpr.ref("expectedData").invoke("put").arg(msgForExceprion).arg(JExpr.ref(paramExpected).invoke(method.getName()).invoke("toString"))).add(
-                                JExpr.ref("actualData").invoke("put").arg(msgForExceprion).arg(JExpr.ref(paramActual).invoke(method.getName()).invoke("toString"))
-                        );
+                        createConditionBlockForExcludeList(block, paramActual, paramExpected, method, fieldName, equalMethod);
                     }
-
-                    System.out.println("End isSimpleType");
                 }
                 if (methodReturnType == List.class) {
                     countArraySymbol++;
-                    System.out.println("Start inside List ");
                     classNameGenericReturnType = getClassGenericReturnType(method);
-                    System.out.println("if(List.class) methodReturnType =" + methodReturnType);
                     JType genericType = codeModel.ref(classNameGenericReturnType);
                     JForLoop jForLoop = block._for();
                     JVar ivar = jForLoop.init(codeModel.INT, counterSymbol[countArraySymbol], JExpr.lit(0));
@@ -260,19 +218,15 @@ public class GenerateSimilarToClass {
                     jForLoop.update(ivar.incr());
 
                     if (isSimpleType(classNameGenericReturnType)) {
-                        System.out.println("GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG");
-                        System.out.println("classNameGenericReturnType = " + classNameGenericReturnType);
-                        if(superMethod != null){
+                        if (superMethod != null) {
                             genericType = codeModel.ref(superMethod.getReturnType());
-                        }  else {
+                        } else {
                             genericType = codeModel.ref(method.getReturnType());
                         }
-//---------------------------------------------------------------------------------------------------------------------------------------------------------
-                        String expectedName = EXPECTED_ROW + genericType.name();
                         JConditional condition = jForLoop.body()._if(JExpr.ref(paramActual).invoke(method.getName()).invoke("get").arg(JExpr.ref(counterSymbol[countArraySymbol])).invoke("equals").arg(
                                 JExpr.ref(paramExpected).invoke(method.getName()).invoke("get").arg(JExpr.ref(counterSymbol[countArraySymbol]))
                         ).not());
-                        if(superMethod != null){
+                        if (superMethod != null) {
                             String explain = " in row ";
                             condition._then().add(
                                     JExpr.ref("expectedData").invoke("put").arg(JExpr.lit(explain).plus(JExpr.ref(counterSymbol[countArraySymbol])).plus(JExpr.ref(counterSymbol[countArraySymbol - 1]))).arg(JExpr.ref(EXPECTED_ROW).invoke(superMethod.getName()).invoke(method.getName()).invoke("toString"))).add(
@@ -280,7 +234,6 @@ public class GenerateSimilarToClass {
                             );
                         }
 
-//---------------------------------------------------------------------------------------------------------------------------------------------------------
                     } else {
                         String actualParamLocal = null;
                         String expectedParamLocal = null;
@@ -296,29 +249,38 @@ public class GenerateSimilarToClass {
                         }
                         jForLoop.body().decl(genericType, actualParamLocal, JExpr.ref(paramActual).invoke(method.getName()).invoke("get").arg(JExpr.ref(counterSymbol[countArraySymbol])));
                         jForLoop.body().decl(genericType, expectedParamLocal, JExpr.ref(expectedResp).invoke(method.getName()).invoke("get").arg(JExpr.ref(counterSymbol[countArraySymbol])));
-                        System.out.println("before mainbody");
                         mainBody(classNameGenericReturnType, actualParamLocal, expectedParamLocal, jForLoop.body(), null);
-                        System.out.println("after mainbody");
-                        System.out.println("End inside List");
                     }
                     countArraySymbol--;
                 } else if (methodReturnType != List.class && !isSimpleType(methodReturnType)) {
-                    System.out.println("Inside Else");
                     JType genericType = codeModel.ref(methodReturnType);
-                    System.out.println("Inside Else method.getName = " + method.getName());
-                    System.out.println("Inside Else genericType = " + genericType);
-                    System.out.println("Inside Else methodReturnType = " + methodReturnType);
-                    System.out.println("methodReturnType = " + methodReturnType);
-                    System.out.println(" begin isSimpleType methodReturnType = " + methodReturnType + "method name = " + method.getName());
                     fieldName = method.getName().substring(3);
+                    fieldName = makeFirstLetterLowerCase(fieldName);
                     JConditional condition = block._if(JExpr.ref(LIST_TO_EXCLUDE).invoke("contains").arg(fieldName).not());
                     condition._then().decl(genericType, paramActual + fieldName, JExpr.ref(paramActual).invoke(method.getName()));
                     condition._then().decl(genericType, paramExpected + fieldName, JExpr.ref(paramExpected).invoke(method.getName()));
-                    System.out.println("End isSimpleType");
                     mainBody(methodReturnType, paramActual + fieldName, paramExpected + fieldName, condition._then(), method);
                 }
             }
         }
+    }
+
+    private void createConditionBlockForExcludeList(JBlock block, String paramActual, String paramExpected, Method method, String fieldName, String equalMethod) {
+        JConditional firstConditional = block._if(JExpr.ref(LIST_TO_EXCLUDE).invoke("contains").arg(fieldName).not());
+        JConditional secondConditional = firstConditional._then()._if(JExpr.ref(paramActual).invoke(method.getName()).ne(JExpr.ref("null")));
+        JConditional thirdConditional = secondConditional._then()._if(JExpr.ref(paramExpected).invoke(method.getName()).ne(JExpr.ref("null")));
+        JConditional fourthConditional = thirdConditional._then()._if(JExpr.ref(paramActual).invoke(method.getName()).invoke(equalMethod).arg(JExpr.ref(paramExpected).invoke(method.getName())).ne(JExpr.ref("0")));
+        fourthConditional
+                ._then()
+                .add(JExpr.ref("expectedData").invoke("put").arg(createMsgForEqualsCondition(method.getName())).arg(JExpr.ref(paramExpected).invoke(method.getName()).invoke("toString")))
+                .add(JExpr.ref("actualData").invoke("put").arg(createMsgForEqualsCondition(method.getName())).arg(JExpr.ref(paramActual).invoke(method.getName()).invoke("toString")));
+        thirdConditional._else()
+                .add(JExpr.ref("expectedData").invoke("put").arg(createMsgForEqualsCondition(method.getName())).arg("Null"))
+                .add(JExpr.ref("actualData").invoke("put").arg(createMsgForEqualsCondition(method.getName())).arg(JExpr.ref(paramActual).invoke(method.getName()).invoke("toString")));
+        secondConditional._else().block()._if(JExpr.ref(paramExpected).invoke(method.getName()).ne(JExpr.ref("null")))
+                ._then()
+                .add(JExpr.ref("expectedData").invoke("put").arg(createMsgForEqualsCondition(method.getName())).arg(JExpr.ref(paramExpected).invoke(method.getName()).invoke("toString")))
+                .add(JExpr.ref("actualData").invoke("put").arg(createMsgForEqualsCondition(method.getName())).arg("Null"));
     }
 
     private boolean isGetMethod(Method method) {
@@ -327,39 +289,11 @@ public class GenerateSimilarToClass {
                 && (!(method.getName().equals("getClass")));
     }
 
-   /* public static void writeIfElse(JCodeModel codeModel, JDefinedClass c) {
-        JMethod method = c.method(JMod.PUBLIC, codeModel.VOID, "testIf");
-        JVar input = method.param(codeModel.INT, "input");
-        JBlock body = method.body();
-        JConditional condition = body._if(input.lt(JExpr.lit(42)));
-        condition._then().add(
-                codeModel.ref(System.class).staticRef("out").invoke("println").arg(JExpr.lit("hello")));
-        condition._else().add(
-                codeModel.ref(System.class).staticRef("out").invoke("println").arg(JExpr.lit("world")));
-    }*/
-
-   /* public static void writeForLoop(JCodeModel codeModel, JDefinedClass c) {
-        JMethod method = c.method(JMod.PUBLIC, codeModel.VOID, "testFor");
-        JVar input = method.param(int.class, "input");
-        JBlock body = method.body();
-        JForLoop forLoop = body._for();
-        JVar ivar = forLoop.init(codeModel.INT, "i", JExpr.lit(0));
-        forLoop.test(ivar.lt(JExpr.lit(42)));
-        forLoop.update(ivar.assignPlus(JExpr.lit(1)));
-        forLoop.body().add(
-                codeModel.ref(System.class).staticRef("out").invoke("println").arg(ivar));
+    private String makeFirstLetterLowerCase(String letter) {
+        char c[] = letter.toCharArray();
+        c[0] = Character.toLowerCase(c[0]);
+        return new String(c);
     }
-*/
-   /* public void getMethod(){
-        Method[] methods1 = classNameGenericReturnType.getMethods();
-        for (Method method2 : methods1) {
-            if (method2.getName().startsWith("get")
-                    && (method2.getParameterTypes()).length == 0
-                    && (!(method2.getName().equals("getClass")))) {
-                System.out.println("method2 = " + method2);
-            }
-        }
-    }*/
 
     private Class<?> getClassGenericReturnType(Method method) {
         Type genericReturnType = method.getGenericReturnType();
@@ -369,14 +303,6 @@ public class GenerateSimilarToClass {
         }
         return fieldGenericClass;
     }
-
-    /*private JForLoop createLoopFor(String paramMatchesSafely, JBlock blockMatchesSafely, Method method) {
-        JForLoop forLoop = blockMatchesSafely._for();
-        JVar ivar = forLoop.init(codeModel.INT, "i", JExpr.lit(0));
-        forLoop.test(ivar.lt(JExpr.ref(paramMatchesSafely).invoke(method.getName()).invoke("size")));
-        forLoop.update(ivar.incr());
-        return forLoop;
-    }*/
 
     private boolean isSimpleType(Class<?> type) {
         return ClassUtils.isPrimitiveOrWrapper(type)
@@ -391,23 +317,19 @@ public class GenerateSimilarToClass {
         return type.equals(XMLGregorianCalendar.class);
     }
 
-    private void bodyMatcherSafe(Class<?> type) {
-        Class clazz = type;
-        Method[] methods = clazz.getMethods();
-        for (Method method : methods) {
-            if (isGetMethod(method)) {
-            }
-        }
-    }
-
-    public void createDescribeToMethod() {
+    public void createDescribeToMethod(Class<?> type) {
         JMethod describeToMethod = definedClass.method(JMod.PUBLIC, Void.TYPE, "describeTo");
         String description = "description";
         JClass refDescription = codeModel.ref(Description.class);
         describeToMethod.param(refDescription, description);
         describeToMethod.annotate(Override.class);
         JBlock blockDescribeTo = describeToMethod.body();
-        blockDescribeTo.add(JExpr.ref(description).invoke("appendText").arg("get bill history response with parameters"));
+        String[] strings = StringUtils.splitByCharacterTypeCamelCase(type.getSimpleName());
+        String name = new String();
+        for (String msg : strings) {
+            name += msg + " ";
+        }
+        blockDescribeTo.add(JExpr.ref(description).invoke("appendText").arg(name));
     }
 
 
