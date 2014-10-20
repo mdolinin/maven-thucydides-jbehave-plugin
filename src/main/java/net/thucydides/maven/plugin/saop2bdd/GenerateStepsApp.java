@@ -108,12 +108,17 @@ public class GenerateStepsApp {
                 for (Method webServiceMethod : webServiceMethods) {
                     //create code model for webservice response
                     Class<?> webServiceResponseClass = webServiceMethod.getReturnType();
-                    JClass modelWebServiceResponseClass = codeModel.ref(ClassUtils.primitiveToWrapper(webServiceResponseClass));
+                    JClass modelWebServiceResponseClass = null;
+                    if (webServiceResponseClass.getName().equals(void.class.getName())) {
+                        modelWebServiceResponseClass = codeModel.ref(Void.class);
+                    } else {
+                        modelWebServiceResponseClass = codeModel.ref(ClassUtils.primitiveToWrapper(webServiceResponseClass));
+                    }
                     //resolve generic types
                     Type genericReturnType = webServiceMethod.getGenericReturnType();
                     Class genericReturnTypeClass = null;
                     if (genericReturnType instanceof ParameterizedType) {
-                        genericReturnTypeClass = (Class) ((ParameterizedType) genericReturnType).getActualTypeArguments()[0];
+                        genericReturnTypeClass = (Class) ((ParameterizedType) genericReturnType).getActualTypeArguments()[0];//
                         JClass modelActualReturnTypeClass = codeModel.ref(genericReturnTypeClass);
                         //narrow class by its generic type
                         modelWebServiceResponseClass = modelWebServiceResponseClass.narrow(modelActualReturnTypeClass);
@@ -131,7 +136,6 @@ public class GenerateStepsApp {
                     String stepPattern = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, stepMethodName).replaceAll("_", " ");
                     //create call of webservice
                     JInvocation callWebservice = proxyField.invoke(stepMethodName);
-
                     //find method parameters and add
                     Class<?>[] parameterTypes = webServiceMethod.getParameterTypes();
                     Type[] genericParameterTypes = webServiceMethod.getGenericParameterTypes();
@@ -142,12 +146,22 @@ public class GenerateStepsApp {
                         JClass modelParameterClass = codeModel.ref(ClassUtils.primitiveToWrapper(parameterClass));
                         Type genericParameterType = genericParameterTypes[i];
                         Class<?> genericParameterTypeClass = null;
-                        if (genericParameterType instanceof ParameterizedType) {
-                            genericParameterTypeClass = (Class) ((ParameterizedType) genericReturnType).getActualTypeArguments()[0];
-                            JClass modelGenericParameterTypeClass = codeModel.ref(genericReturnTypeClass);
-                            //narrow class by its generic type
-                            modelParameterClass = modelParameterClass.narrow(modelGenericParameterTypeClass);
+
+                        try {
+                            if (genericParameterType instanceof ParameterizedType) {
+                                genericParameterTypeClass = (Class) ((ParameterizedType) genericReturnType).getActualTypeArguments()[0];
+                                JClass modelGenericParameterTypeClass = codeModel.ref(genericReturnTypeClass);
+                                //narrow class by its generic type
+                                modelParameterClass = modelParameterClass.narrow(modelGenericParameterTypeClass);
+                            }
+                        } catch (ClassCastException ex) {
+                            int beginName = genericParameterType.toString().lastIndexOf(".") + 1;
+                            int endName = genericParameterType.toString().length() - 1;
+                            String parameterType = genericParameterType.toString().substring(beginName, endName);
+                            modelParameterClass = modelParameterClass.narrow(codeModel.ref(parameterType));
+                            logger.warning(ex.getMessage());
                         }
+
                         String parameterName = getWebParamName(parameterAnnotations[i]);
                         String parameterKeyName = parameterName + "Key";
                         whenMethod.param(String.class, parameterKeyName);
@@ -171,6 +185,9 @@ public class GenerateStepsApp {
 
                     //add save to part to annotation
                     String webServiceResponseTypeNameKey = webServiceResponseTypeName + "Key";
+                    //webServiceResponseIgnoreFields
+
+
                     stepPattern += " and save response to $" + webServiceResponseTypeNameKey;
                     //add response key to method
                     whenMethod.param(String.class, webServiceResponseTypeNameKey);
@@ -181,7 +198,7 @@ public class GenerateStepsApp {
                         //save response to test session
                         whenMethod.body().add(JExpr.invoke(SAVE).arg(JExpr.ref(webServiceResponseTypeNameKey)).arg(JExpr.ref(webServiceResponseTypeName)));
                         givenStepsGenerator.generateFor(webServiceResponseClass, webServiceResponseTypeName, webServiceResponseTypeNameKey);
-                        thenStepsGenerator.generateFor(webServiceResponseClass, webServiceResponseTypeName, webServiceResponseTypeNameKey);
+                        thenStepsGenerator.generateFor(webServiceResponseClass, webServiceResponseTypeName, webServiceResponseTypeNameKey, outputDir);
                     } else {
                         whenMethod.body().add(callWebservice);
                     }

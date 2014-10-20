@@ -11,18 +11,23 @@ import org.jbehave.core.annotations.Then;
 import org.junit.Assert;
 
 import javax.xml.datatype.XMLGregorianCalendar;
+import java.io.File;
+import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import static net.thucydides.maven.plugin.saop2bdd.GenerateStepsApp.addGetValueFromVariable;
 import static net.thucydides.maven.plugin.saop2bdd.GenerateStepsApp.getVariableName;
 
-/**
- * Created by mdolinin on 8/11/14.
- */
 public class GenerateThenSteps {
+    public static final Logger logger = Logger.getLogger(GenerateThenSteps.class.getName());
     private JCodeModel codeModel;
     private JDefinedClass serviceStepsRawClass;
     private Set<Class<?>> types = new HashSet<Class<?>>();
@@ -32,10 +37,18 @@ public class GenerateThenSteps {
         this.serviceStepsRawClass = serviceStepsRawClass;
     }
 
-    public void generateFor(Class<?> type, String name, String key) {
+    private JClass genarateSimilarToClazz(JCodeModel codeModel,Class<?> type, String nameClazz, String packageName) {
+        GenerateSimilarToClass similarToClass = new GenerateSimilarToClass();
+         return similarToClass.createGenerateSimilarToClazz(codeModel, type, nameClazz,packageName );
+    }
+
+
+    public void generateFor(Class<?> type, String name, String key, File outputDir) {
         if (isSimple(type)) {
             return;
         }
+        JClass refCustomMatcherSimilarTo = genarateSimilarToClazz(codeModel, type, key, serviceStepsRawClass.getPackage().name());
+
         //create model of our web service class
         JClass rawTypeClass = codeModel.ref(type);
         JType rawType = codeModel._ref(type);
@@ -51,15 +64,17 @@ public class GenerateThenSteps {
 
         //create then method for type
         String stepMethodName = type.getSimpleName();
-        JMethod thenMethod = serviceStepsRawClass.method(JMod.PUBLIC, Void.TYPE,
-                getVariableName(Then.class) +
-                        StringUtils.capitalize(stepMethodName));
+        JMethod thenMethod = serviceStepsRawClass.method(JMod.PUBLIC, Void.TYPE, getVariableName(Then.class) +
+                StringUtils.capitalize(stepMethodName));
 
         //add actual key to method params
         thenMethod.param(String.class, actualValueKey);
 
         //create jbehave annotation
         String stepPattern = "$" + actualValueKey + " " + CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, stepMethodName).replaceAll("_", " ");
+
+        JClass rawArrayListClass = codeModel.ref(ArrayList.class);
+        JClass arrayListClazz = rawArrayListClass.narrow(String.class);
 
         //get values from test session
         //create get from test session map method
@@ -75,12 +90,20 @@ public class GenerateThenSteps {
         //add assertion of actual and expected
         JClass refAssert = codeModel.ref(Assert.class);
         JClass refCoreMatchers = codeModel.ref(CoreMatchers.class);
-        thenMethod.body().add(refAssert.staticInvoke("assertThat").arg(JExpr.ref(actualValue)).arg(refCoreMatchers.staticInvoke("is").arg(JExpr.ref(expectedValue))));
+
+//        thenMethod.body().add(refAssert.staticInvoke("assertThat").arg(JExpr.ref(actualValue)).arg(refCoreMatchers.staticInvoke("is").arg(JExpr.ref(expectedValue))));
+
+        thenMethod.body().add(refAssert.staticInvoke("assertThat").arg(JExpr.ref(actualValue)).arg(refCustomMatcherSimilarTo.staticInvoke("similarTo").arg(JExpr.ref(expectedValue)).invoke("exclude").arg(JExpr.ref("fields"))));
 
         //add save to part to annotation
-        stepPattern += " is equal to $" + expectedValueKey;
+        stepPattern += " is equal to $" + expectedValueKey + " and ignore $fields";
+//        stepPattern += " is equal to $" + expectedValueKey;
+        logger.info("stepPattern " + stepPattern);
         //add expected key to method params
         thenMethod.param(String.class, expectedValueKey);
+        //add ignore fileds key to method params
+
+        thenMethod.param(arrayListClazz, "fields");
 
         //add jbehave annotation
         thenMethod.annotate(Then.class).param("value", StringEscapeUtils.escapeJava(stepPattern));
@@ -103,4 +126,5 @@ public class GenerateThenSteps {
                 || type.equals(BigInteger.class)
                 || type.equals(BigDecimal.class);
     }
+
 }
