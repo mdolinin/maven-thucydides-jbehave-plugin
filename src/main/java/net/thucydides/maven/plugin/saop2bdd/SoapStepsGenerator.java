@@ -5,7 +5,6 @@ import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.sun.codemodel.*;
 import com.sun.codemodel.writer.FileCodeWriter;
-import com.sun.codemodel.writer.SingleStreamCodeWriter;
 import net.thucydides.core.Thucydides;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
@@ -21,7 +20,6 @@ import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.ws.WebServiceClient;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
@@ -33,16 +31,13 @@ import java.math.BigInteger;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Logger;
 
 import static com.sun.codemodel.JJavaName.isJavaIdentifier;
 
 /**
  * Created by mdolinin on 8/7/14.
  */
-public class GenerateStepsApp {
-
-    private final static Logger logger = Logger.getLogger(net.thucydides.maven.plugin.saop2bdd.GenerateStepsApp.class.getName());
+public class SoapStepsGenerator {
 
     public static final String GET_VARIABLE_VALUE = "getVariableValue";
     public static final String GET_VARIABLE_AS_BOOLEAN = "getVariableAsBoolean";
@@ -57,7 +52,7 @@ public class GenerateStepsApp {
     private static JClass rawThucydidesClass;
     private static JClass modelAssertionErrorClass;
 
-    public void init(String packageForScenarioSteps, ClassLoader classLoader, File outputDir, Log log) throws ClassNotFoundException, JClassAlreadyExistsException, IOException {
+    public void generateFor(String packageForScenarioSteps, ClassLoader classLoader, File outputDir, Log log) throws ClassNotFoundException, JClassAlreadyExistsException, IOException {
 
         Reflections reflections = new Reflections(packageForScenarioSteps, classLoader);
 
@@ -159,7 +154,7 @@ public class GenerateStepsApp {
                             int endName = genericParameterType.toString().length() - 1;
                             String parameterType = genericParameterType.toString().substring(beginName, endName);
                             modelParameterClass = modelParameterClass.narrow(codeModel.ref(parameterType));
-                            logger.warning(ex.getMessage());
+                            log.debug(ex.getMessage());
                         }
 
                         String parameterName = getWebParamName(parameterAnnotations[i]);
@@ -341,10 +336,7 @@ public class GenerateStepsApp {
         }
 
         //generate java files from model
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        codeModel.build(new SingleStreamCodeWriter(out));
-        boolean isCreated = new File(outputDir.getCanonicalPath()).mkdir();
-        codeModel.build(new FileCodeWriter(new File(outputDir.getCanonicalPath())));
+        codeModel.build(new FileCodeWriter(outputDir));
     }
 
     public static void addGetValueFromVariable(JCodeModel codeModel, JDefinedClass serviceStepsRawClass, JMethod method, JBlock jBlock, Class<?> parameterClass, JClass rawParameterType, String parameterName, String parameterKeyName) {
@@ -447,7 +439,7 @@ public class GenerateStepsApp {
         List<String> parametersNames = Lists.transform(jMethod.params(), new Function<JVar, String>() {
             @Override
             public String apply(@Nullable JVar input) {
-                return input.name();
+                return input != null ? input.name() : null;
             }
         });
         String newName = parameterName;

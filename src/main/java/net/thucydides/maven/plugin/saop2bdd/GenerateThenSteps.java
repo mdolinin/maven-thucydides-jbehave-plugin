@@ -12,22 +12,16 @@ import org.junit.Assert;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.File;
-import java.lang.reflect.Field;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
-import java.util.logging.Logger;
 
-import static net.thucydides.maven.plugin.saop2bdd.GenerateStepsApp.addGetValueFromVariable;
-import static net.thucydides.maven.plugin.saop2bdd.GenerateStepsApp.getVariableName;
+import static net.thucydides.maven.plugin.saop2bdd.SoapStepsGenerator.addGetValueFromVariable;
+import static net.thucydides.maven.plugin.saop2bdd.SoapStepsGenerator.getVariableName;
 
 public class GenerateThenSteps {
-    public static final Logger logger = Logger.getLogger(GenerateThenSteps.class.getName());
     private JCodeModel codeModel;
     private JDefinedClass serviceStepsRawClass;
     private Set<Class<?>> types = new HashSet<Class<?>>();
@@ -37,7 +31,7 @@ public class GenerateThenSteps {
         this.serviceStepsRawClass = serviceStepsRawClass;
     }
 
-    private JClass genarateSimilarToClazz(JCodeModel codeModel,Class<?> type, String nameClazz, String packageName) {
+    private JClass generateSimilarToClazz(JCodeModel codeModel, Class<?> type, String nameClazz, String packageName) {
         GenerateSimilarToClass similarToClass = new GenerateSimilarToClass();
          return similarToClass.createGenerateSimilarToClazz(codeModel, type, nameClazz,packageName );
     }
@@ -47,7 +41,7 @@ public class GenerateThenSteps {
         if (isSimple(type)) {
             return;
         }
-        JClass refCustomMatcherSimilarTo = genarateSimilarToClazz(codeModel, type, key, serviceStepsRawClass.getPackage().name());
+        JClass refCustomMatcherSimilarTo = generateSimilarToClazz(codeModel, type, key, serviceStepsRawClass.getPackage().name() + ".matcher");
 
         //create model of our web service class
         JClass rawTypeClass = codeModel.ref(type);
@@ -91,14 +85,10 @@ public class GenerateThenSteps {
         JClass refAssert = codeModel.ref(Assert.class);
         JClass refCoreMatchers = codeModel.ref(CoreMatchers.class);
 
-//        thenMethod.body().add(refAssert.staticInvoke("assertThat").arg(JExpr.ref(actualValue)).arg(refCoreMatchers.staticInvoke("is").arg(JExpr.ref(expectedValue))));
-
         thenMethod.body().add(refAssert.staticInvoke("assertThat").arg(JExpr.ref(actualValue)).arg(refCustomMatcherSimilarTo.staticInvoke("similarTo").arg(JExpr.ref(expectedValue)).invoke("exclude").arg(JExpr.ref("fields"))));
 
         //add save to part to annotation
         stepPattern += " is equal to $" + expectedValueKey + " and ignore $fields";
-//        stepPattern += " is equal to $" + expectedValueKey;
-        logger.info("stepPattern " + stepPattern);
         //add expected key to method params
         thenMethod.param(String.class, expectedValueKey);
         //add ignore fileds key to method params

@@ -13,12 +13,13 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.*;
-import java.util.logging.Logger;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 
 public class GenerateSimilarToClass {
-    public static final Logger logger = Logger.getLogger(GenerateSimilarToClass.class.getName());
     public static final String CUSTOM_MATCHER_SIMILAR_TO_CLASS_NAME = "SimilarTo";
     public static final String ACTUAL_ROW = "actualRow";
     public static final String KEY = "key";

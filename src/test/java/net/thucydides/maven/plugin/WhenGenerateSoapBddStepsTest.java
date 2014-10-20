@@ -28,8 +28,7 @@ public class WhenGenerateSoapBddStepsTest {
         plugin = new GenerateSoapStepsMojo();
         plugin.setOutputDirectory(new File("./target/generated-test-sources"));
         plugin.setOutputDirectory(outputDirectory);
-        plugin.setPackageForSoapSteps("net.thucydides.maven.plugin.test.example");
-//        plugin.setPackageForSoapSteps("engagepoint.billing.paymentrequestservice._1");
+        plugin.setSoapStepsPackages(new String[]{"net.thucydides.maven.plugin.test.example"});
         plugin.setClassesDirectory(new File("net.thucydides.test"));
         plugin.setTestClassesDirectory(new File("./target/"));
         plugin.setProject(new MavenProject());
@@ -44,7 +43,7 @@ public class WhenGenerateSoapBddStepsTest {
         } catch (MojoFailureException e) {
             e.printStackTrace();
         }
-        File destinationDirectory = new File(outputDirectory, plugin.packageForSoapSteps.replaceAll("\\.", "/"));
+        File destinationDirectory = new File(outputDirectory, plugin.soapStepsPackages[0].replaceAll("\\.", "/"));
         File expectedFile = new File(destinationDirectory, "HelloWorldImplServiceSteps.java");
         File actualFile = new File(expectedPathToFile);
         assertEquals(FileUtils.readLines(actualFile), FileUtils.readLines(expectedFile));

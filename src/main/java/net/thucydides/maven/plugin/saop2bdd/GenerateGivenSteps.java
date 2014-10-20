@@ -19,9 +19,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static net.thucydides.maven.plugin.saop2bdd.SoapStepsGenerator.*;
 import static org.apache.commons.lang3.StringUtils.capitalize;
 import static org.apache.commons.lang3.StringUtils.uncapitalize;
-import static net.thucydides.maven.plugin.saop2bdd.GenerateStepsApp.*;
 
 public class GenerateGivenSteps {
     private JCodeModel codeModel;
@@ -50,10 +50,6 @@ public class GenerateGivenSteps {
         JMethod givenMethod = serviceStepsRawClass.method(JMod.PUBLIC, Void.TYPE,
                 getVariableName(Given.class) +
                         StringUtils.capitalize(stepMethodName));
-//        if (!bigDecimalAptcKey.isEmpty()) {
-//            BigDecimal bigDecimalAptc = getVariableAsBigDecimal(bigDecimalAptcKey);
-//            getAccountSummaryYTDResponse.setAptc(bigDecimalAptc);
-//        }
         //create jbehave annotation
         String stepPattern = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, stepMethodName).replaceAll("_", " ");
 

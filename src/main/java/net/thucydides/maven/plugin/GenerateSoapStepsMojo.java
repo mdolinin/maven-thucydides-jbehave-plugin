@@ -1,7 +1,7 @@
 package net.thucydides.maven.plugin;
 
 import com.sun.codemodel.JClassAlreadyExistsException;
-import net.thucydides.maven.plugin.saop2bdd.GenerateStepsApp;
+import net.thucydides.maven.plugin.saop2bdd.SoapStepsGenerator;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -16,19 +16,16 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.logging.Logger;
 
 /**
  * @goal generate-soap-steps
- * @phase process-test-resources
+ * @phase generate-test-sources
  */
 public class GenerateSoapStepsMojo extends AbstractMojo {
-    private final static Logger logger = Logger.getLogger(GenerateSoapStepsMojo.class.getName());
-
-
 
     /**
-     * The directory containing generated classes of the project being tested. This will be included after the test
+     * The directory containing generated classes of the project being tested.
+     * This will be included after the test
      * classes in the test classpath.
      *
      * @parameter expression="${project.build.outputDirectory}"
@@ -39,33 +36,21 @@ public class GenerateSoapStepsMojo extends AbstractMojo {
     /**
      * Package name for Soap jbehave steps
      *
-     * @parameter expression="${project.soap.steps.package}" default-value="${project.groupId}"
+     * @parameter
      * @required
      */
-    public String packageForSoapSteps;
-
-    public void setOutputDirectory(File outputDirectory) {
-        this.outputDirectory = outputDirectory;
-    }
+    public String[] soapStepsPackages;
 
     /**
      * Location of the file.
      *
-     * @parameter expression="${project.soap.steps.stories.directory}" default-value="${project.build.directory}/generated-test-sources"
+     * @parameter expression="${project.soap.steps.stories.directory}"
+     * default-value="${project.build.directory}/generated-test-sources/soap-steps"
      * @required
      */
     private File outputDirectory;
 
-    public void setProject(MavenProject project) {
-        this.project = project;
-    }
-
-    public void setPackageForSoapSteps(String packageForSoapSteps) {
-        this.packageForSoapSteps = packageForSoapSteps;
-    }
-
     /**
-
      * The Maven Project.
      *
      * @parameter expression="${project}"
@@ -73,10 +58,6 @@ public class GenerateSoapStepsMojo extends AbstractMojo {
      * @readonly
      */
     private MavenProject project;
-
-    public void setTestClassesDirectory(File testClassesDirectory) {
-        this.testClassesDirectory = testClassesDirectory;
-    }
 
     /**
      * The directory containing generated test classes of the project being tested. This will be included at the
@@ -89,10 +70,17 @@ public class GenerateSoapStepsMojo extends AbstractMojo {
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        GenerateStepsApp stepsApp = new GenerateStepsApp();
+        File outputDir = getOutputDirectory();
+        if (!outputDir.exists()
+                && outputDir.mkdirs()) {
+            outputDir = getOutputDirectory();
+        }
+        SoapStepsGenerator stepsGenerator = new SoapStepsGenerator();
         Log log = getLog();
         try {
-            stepsApp.init(packageForSoapSteps, getClassLoader(), outputDirectory, log);
+            for (String packForSoapSteps : getSoapStepsPackages()) {
+                stepsGenerator.generateFor(packForSoapSteps, getClassLoader(), outputDir, log);
+            }
         } catch (ClassNotFoundException e) {
             log.error(e.getMessage(), e);
         } catch (JClassAlreadyExistsException e) {
@@ -100,6 +88,7 @@ public class GenerateSoapStepsMojo extends AbstractMojo {
         } catch (IOException e) {
             log.error(e.getMessage(), e);
         }
+        getProject().addTestCompileSourceRoot(outputDir.getAbsolutePath());
     }
 
     /**
@@ -140,21 +129,44 @@ public class GenerateSoapStepsMojo extends AbstractMojo {
         return projectClassLoader;
     }
 
-    private File getClassesDirectory() {
+    public File getClassesDirectory() {
         return classesDirectory;
     }
 
+    public String[] getSoapStepsPackages() {
+        return soapStepsPackages;
+    }
 
-    private File getTestClassesDirectory() {
+    public File getTestClassesDirectory() {
         return testClassesDirectory;
     }
 
-    private MavenProject getProject() {
+    public File getOutputDirectory() {
+        return outputDirectory;
+    }
+
+    public MavenProject getProject() {
         return project;
     }
 
     public void setClassesDirectory(File classesDirectory) {
         this.classesDirectory = classesDirectory;
+    }
+
+    public void setSoapStepsPackages(String[] soapStepsPackages) {
+        this.soapStepsPackages = soapStepsPackages;
+    }
+
+    public void setOutputDirectory(File outputDirectory) {
+        this.outputDirectory = outputDirectory;
+    }
+
+    public void setProject(MavenProject project) {
+        this.project = project;
+    }
+
+    public void setTestClassesDirectory(File testClassesDirectory) {
+        this.testClassesDirectory = testClassesDirectory;
     }
 
 }
