@@ -34,9 +34,6 @@ import java.util.Set;
 
 import static com.sun.codemodel.JJavaName.isJavaIdentifier;
 
-/**
- * Created by mdolinin on 8/7/14.
- */
 public class SoapStepsGenerator {
 
     public static final String GET_VARIABLE_VALUE = "getVariableValue";
@@ -52,7 +49,7 @@ public class SoapStepsGenerator {
     private static JClass rawThucydidesClass;
     private static JClass modelAssertionErrorClass;
 
-    public void generateFor(String packageForScenarioSteps, ClassLoader classLoader, File outputDir, Log log) throws ClassNotFoundException, JClassAlreadyExistsException, IOException {
+    public void generateFor(String packageForScenarioSteps, ClassLoader classLoader, File outputDir, Log log, String soapStepsPackage) throws ClassNotFoundException, JClassAlreadyExistsException, IOException {
 
         Reflections reflections = new Reflections(packageForScenarioSteps, classLoader);
 
@@ -60,7 +57,7 @@ public class SoapStepsGenerator {
         JCodeModel codeModel = new JCodeModel();
 
         for (Class<?> serviceClient : soapServicesClients) {
-            JDefinedClass serviceStepsRawClass = codeModel._class(serviceClient.getCanonicalName() + "Steps");
+            JDefinedClass serviceStepsRawClass = codeModel._class(soapStepsPackage + serviceClient.getName() + "Steps");
 
             //create then steps generator
             GenerateThenSteps thenStepsGenerator = new GenerateThenSteps(codeModel, serviceStepsRawClass);

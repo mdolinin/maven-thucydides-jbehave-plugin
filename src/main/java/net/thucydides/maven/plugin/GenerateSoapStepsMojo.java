@@ -39,7 +39,15 @@ public class GenerateSoapStepsMojo extends AbstractMojo {
      * @parameter
      * @required
      */
-    public String[] soapStepsPackages;
+    public String soapStepsPackage;
+
+    /**
+     * Packages with soap services to scan.
+     *
+     * @parameter
+     * @required
+     */
+    public String[] soapServicePackages;
 
     /**
      * Location of the file.
@@ -77,9 +85,10 @@ public class GenerateSoapStepsMojo extends AbstractMojo {
         }
         SoapStepsGenerator stepsGenerator = new SoapStepsGenerator();
         Log log = getLog();
+        String soapStepsPackage = getSoapStepsPackage() == null ? "" : getSoapStepsPackage() + ".";
         try {
-            for (String packForSoapSteps : getSoapStepsPackages()) {
-                stepsGenerator.generateFor(packForSoapSteps, getClassLoader(), outputDir, log);
+            for (String soapServicePack : getSoapServicePackages()) {
+                stepsGenerator.generateFor(soapServicePack, getClassLoader(), outputDir, log, soapStepsPackage);
             }
         } catch (ClassNotFoundException e) {
             log.error(e.getMessage(), e);
@@ -133,8 +142,12 @@ public class GenerateSoapStepsMojo extends AbstractMojo {
         return classesDirectory;
     }
 
-    public String[] getSoapStepsPackages() {
-        return soapStepsPackages;
+    public String getSoapStepsPackage() {
+        return soapStepsPackage;
+    }
+
+    public String[] getSoapServicePackages() {
+        return soapServicePackages;
     }
 
     public File getTestClassesDirectory() {
@@ -153,8 +166,12 @@ public class GenerateSoapStepsMojo extends AbstractMojo {
         this.classesDirectory = classesDirectory;
     }
 
-    public void setSoapStepsPackages(String[] soapStepsPackages) {
-        this.soapStepsPackages = soapStepsPackages;
+    public void setSoapStepsPackage(String soapStepsPackage) {
+        this.soapStepsPackage = soapStepsPackage;
+    }
+
+    public void setSoapServicePackages(String[] soapServicePackages) {
+        this.soapServicePackages = soapServicePackages;
     }
 
     public void setOutputDirectory(File outputDirectory) {
