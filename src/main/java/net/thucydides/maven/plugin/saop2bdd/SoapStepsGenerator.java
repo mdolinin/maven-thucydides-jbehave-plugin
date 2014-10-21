@@ -147,7 +147,7 @@ public class SoapStepsGenerator {
                                 modelParameterClass = modelParameterClass.narrow(modelGenericParameterTypeClass);
                             }
                         } catch (ClassCastException ex) {
-                            int beginName = genericParameterType.toString().lastIndexOf(".") + 1;
+                            int beginName = genericParameterType.toString().indexOf("<") + 1;
                             int endName = genericParameterType.toString().length() - 1;
                             String parameterType = genericParameterType.toString().substring(beginName, endName);
                             modelParameterClass = modelParameterClass.narrow(codeModel.ref(parameterType));
