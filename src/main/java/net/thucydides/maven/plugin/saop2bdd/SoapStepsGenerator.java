@@ -118,6 +118,7 @@ public class SoapStepsGenerator {
                     //create name for response
                     String webServiceResponseTypeName = getWebResultName(webServiceMethod);
 
+
                     //create when method for webservice method
                     String stepMethodName = webServiceMethod.getName();
                     JMethod whenMethod = serviceStepsRawClass.method(JMod.PUBLIC, Void.TYPE,
@@ -157,10 +158,12 @@ public class SoapStepsGenerator {
                         String parameterName = getWebParamName(parameterAnnotations[i]);
                         String parameterKeyName = parameterName + "Key";
                         whenMethod.param(String.class, parameterKeyName);
-
+                        JVar declaration = addDeclaration(codeModel, serviceStepsRawClass, whenMethod, whenMethod.body(), parameterClass, modelParameterClass, parameterName, parameterKeyName);
+                        JConditional jConditional = whenMethod.body()._if(JExpr.ref(parameterKeyName).invoke("isEmpty").not());
                         //get request from test session map
-                        //resole primitive types if parameter is not key
-                        addGetValueFromVariable(codeModel, serviceStepsRawClass, whenMethod, whenMethod.body(), parameterClass, modelParameterClass, parameterName, parameterKeyName);
+                        //resolve primitive types if parameter is not key
+//                        addGetValueFromVariable(codeModel, serviceStepsRawClass, whenMethod, whenMethod.body(), parameterClass, modelParameterClass, parameterName, parameterKeyName);
+                        addInitializationLocalVariable(codeModel, serviceStepsRawClass, whenMethod, jConditional._then(), parameterClass, modelParameterClass, parameterName, parameterKeyName, declaration);
 
                         callWebservice.arg(JExpr.ref(parameterName));
                         stepPattern += " '$" + parameterKeyName + "'";
@@ -329,11 +332,66 @@ public class SoapStepsGenerator {
             jTryBlock._catch(modelAssertionErrorClass).body()._return(refDataTypeFactoryClass.staticInvoke("newInstance").invoke("newXMLGregorianCalendar").arg(key));
             getVariableAsXMLGregorianCalendar._throws(DatatypeConfigurationException.class);
             log.info("Class " + serviceStepsRawClass.fullName() + " created");
-
         }
 
         //generate java files from model
         codeModel.build(new FileCodeWriter(outputDir));
+    }
+    //TODO join  addDeclaration + addInitializationLocalVariable methods in one
+    public static JVar addDeclaration(JCodeModel codeModel, JDefinedClass serviceStepsRawClass, JMethod method, JBlock jBlock, Class<?> parameterClass, JClass rawParameterType, String parameterName, String parameterKeyName) {
+        String typeName = rawParameterType.name();
+        if (typeName.equals(Boolean.class.getSimpleName())) {
+            return method.body().decl(codeModel._ref(Boolean.class), parameterName, JExpr.ref("null"));
+        } else if (typeName.equals(Integer.class.getSimpleName())) {
+            return method.body().decl(codeModel._ref(Integer.class), parameterName, JExpr.ref("null"));
+        } else if (typeName.equals(Long.class.getSimpleName())) {
+            return method.body().decl(codeModel._ref(Long.class), parameterName, JExpr.ref("null"));
+        } else if (typeName.equals(Double.class.getSimpleName())) {
+            return method.body().decl(codeModel._ref(Double.class), parameterName, JExpr.ref("null"));
+        } else if (typeName.equals(BigInteger.class.getSimpleName())) {
+            return method.body().decl(codeModel._ref(BigInteger.class), parameterName, JExpr.ref("null"));
+        } else if (typeName.equals(BigDecimal.class.getSimpleName())) {
+            return method.body().decl(codeModel._ref(BigDecimal.class), parameterName, JExpr.ref("null"));
+        } else if (typeName.equals(XMLGregorianCalendar.class.getSimpleName())) {
+            method._throws(DatatypeConfigurationException.class);
+            return method.body().decl(codeModel._ref(XMLGregorianCalendar.class), parameterName, JExpr.ref("null"));
+        } else if (parameterClass.isEnum()) {
+            JClass refEnumClass = codeModel.ref(parameterClass);
+            String getVariableAsEnumMethodName = createMethodGetVariableAsEnum(serviceStepsRawClass, parameterClass, rawParameterType, refEnumClass);
+            return jBlock.decl(refEnumClass, parameterName, JExpr.invoke(getVariableAsEnumMethodName).arg((JExpr.ref(parameterKeyName))));
+        } else if (typeName.equals(String.class.getSimpleName())) {
+            return jBlock.decl(codeModel._ref(String.class), parameterName, JExpr.ref("null"));
+        } else {
+            return jBlock.decl(rawParameterType, parameterName, JExpr.ref("null"));
+        }
+    }
+
+    public static void addInitializationLocalVariable(JCodeModel codeModel, JDefinedClass serviceStepsRawClass, JMethod method, JBlock jBlock, Class<?> parameterClass, JClass rawParameterType, String parameterName, String parameterKeyName, JVar declaration) {
+        String typeName = rawParameterType.name();
+        if (typeName.equals(Boolean.class.getSimpleName())) {
+            jBlock.assign(JExpr.ref(parameterName), JExpr.invoke(GET_VARIABLE_AS_BOOLEAN).arg((JExpr.ref(parameterKeyName))));
+        } else if (typeName.equals(Integer.class.getSimpleName())) {
+            jBlock.assign(JExpr.ref(parameterName), JExpr.invoke(GET_VARIABLE_AS_INTEGER).arg((JExpr.ref(parameterKeyName))));
+        } else if (typeName.equals(Long.class.getSimpleName())) {
+            jBlock.assign(JExpr.ref(parameterName), JExpr.invoke(GET_VARIABLE_AS_LONG).arg((JExpr.ref(parameterKeyName))));
+        } else if (typeName.equals(Double.class.getSimpleName())) {
+            jBlock.assign(JExpr.ref(parameterName), JExpr.invoke(GET_VARIABLE_AS_DOUBLE).arg((JExpr.ref(parameterKeyName))));
+        } else if (typeName.equals(BigInteger.class.getSimpleName())) {
+            jBlock.assign(JExpr.ref(parameterName), JExpr.invoke(GET_VARIABLE_AS_BIG_INTEGER).arg((JExpr.ref(parameterKeyName))));
+        } else if (typeName.equals(BigDecimal.class.getSimpleName())) {
+            jBlock.assign(JExpr.ref(parameterName), JExpr.invoke(GET_VARIABLE_AS_BIG_DECIMAL).arg((JExpr.ref(parameterKeyName))));
+        } else if (typeName.equals(XMLGregorianCalendar.class.getSimpleName())) {
+            method._throws(DatatypeConfigurationException.class);
+            jBlock.assign(JExpr.ref(parameterName), JExpr.invoke(GET_VARIABLE_AS_XML_GREGORIAN_CALENDAR).arg((JExpr.ref(parameterKeyName))));
+        } else if (parameterClass.isEnum()) {
+            JClass refEnumClass = codeModel.ref(parameterClass);
+            String getVariableAsEnumMethodName = createMethodGetVariableAsEnum(serviceStepsRawClass, parameterClass, rawParameterType, refEnumClass);
+            jBlock.assign(JExpr.ref(parameterName), JExpr.invoke(getVariableAsEnumMethodName).arg((JExpr.ref(parameterKeyName))));
+        } else if (typeName.equals(String.class.getSimpleName())) {
+            jBlock.assign(JExpr.ref(parameterName), JExpr.invoke(GET_VARIABLE_AS_STRING).arg((JExpr.ref(parameterKeyName))));
+        } else {
+            jBlock.assign(JExpr.ref(parameterName), JExpr.invoke(GET_VARIABLE_VALUE).arg((JExpr.ref(parameterKeyName))));
+        }
     }
 
     public static void addGetValueFromVariable(JCodeModel codeModel, JDefinedClass serviceStepsRawClass, JMethod method, JBlock jBlock, Class<?> parameterClass, JClass rawParameterType, String parameterName, String parameterKeyName) {
