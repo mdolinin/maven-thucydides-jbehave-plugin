@@ -15,7 +15,10 @@ public class HelloWorldImplServiceSteps {
 
     @When("get hello world as string '$arg0Key' and save response to $stringKey")
     public void whenGetHelloWorldAsString(String arg0Key, String stringKey) {
-        String arg0 = getVariableAsString(arg0Key);
+        String arg0 = null;
+        if (!arg0Key.isEmpty()) {
+            arg0 = getVariableAsString(arg0Key);
+        }
         String string = helloWorldField.getHelloWorldAsString(arg0);
         save(stringKey, string);
     }
@@ -85,7 +88,7 @@ public class HelloWorldImplServiceSteps {
     }
 
     private XMLGregorianCalendar getVariableAsXMLGregorianCalendar(String key)
-        throws DatatypeConfigurationException
+            throws DatatypeConfigurationException
     {
         try {
             return ((XMLGregorianCalendar) Thucydides.getCurrentSession().get(key));
