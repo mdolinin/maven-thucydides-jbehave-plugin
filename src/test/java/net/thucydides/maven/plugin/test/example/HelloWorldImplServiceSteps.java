@@ -88,7 +88,7 @@ public class HelloWorldImplServiceSteps {
     }
 
     private XMLGregorianCalendar getVariableAsXMLGregorianCalendar(String key)
-            throws DatatypeConfigurationException
+        throws DatatypeConfigurationException
     {
         try {
             return ((XMLGregorianCalendar) Thucydides.getCurrentSession().get(key));
