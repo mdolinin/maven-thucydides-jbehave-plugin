@@ -121,7 +121,7 @@ public class GenerateGivenSteps {
         }
 
         //add save to part to annotation
-        stepPattern += " and save to $" + key;
+        stepPattern += " and save to $" + key + getClassNameLikeString(serviceStepsRawClass.name());
         //add response key to method
         givenMethod.param(String.class, key);
 
@@ -148,5 +148,14 @@ public class GenerateGivenSteps {
                 || type.equals(XMLGregorianCalendar.class)
                 || type.equals(BigInteger.class)
                 || type.equals(BigDecimal.class);
+    }
+
+    private String getClassNameLikeString(String className) {
+        String[] strings = StringUtils.splitByCharacterTypeCamelCase(className);
+        String result = " -";
+        for (int i = 0; i < strings.length - 1; i++) {
+            result += " " + strings[i].toLowerCase();
+        }
+        return result;
     }
 }
