@@ -174,17 +174,22 @@ public class GenerateSimilarToClass {
         Method[] methods = type.getMethods();
         for (Method method : methods) {
             String fieldName = null;
-            if (isGetMethod(method)) {
+            if (isGetMethod(method) || isBooleanMethod(method)) {
                 Class<?> methodReturnType = method.getReturnType();
                 if (isSimpleType(methodReturnType)) {
                     if (methodReturnType.isEnum()) {
-                        JConditional condition = block._if(JExpr.ref(paramActual).invoke(method.getName()).invoke("equals").arg(JExpr.ref(paramExpected).invoke(method.getName())).not());
+                        fieldName = makeFirstLetterLowerCase(method.getName().substring(3));
+                        JConditional listExcludeCondition = block._if(JExpr.ref(LIST_TO_EXCLUDE).invoke("contains").arg(fieldName).not());
+                        JConditional actualCondition = listExcludeCondition._then()._if(JExpr.ref(paramActual).invoke(method.getName()).ne(JExpr.ref("null")));
+                        JConditional expectedCondition = actualCondition._then()._if(JExpr.ref(paramExpected).invoke(method.getName()).ne(JExpr.ref("null")));
+                        JConditional equalsCondition = expectedCondition._then()._if(JExpr.ref(paramActual).invoke(method.getName()).invoke("equals").arg(JExpr.ref(paramExpected).invoke(method.getName())).not());
+
                         if (null != superMethod) {
-                            condition._then()
+                            equalsCondition._then()
                                     .add(JExpr.ref(EXPECTED_DATA).invoke("put").arg(createMsgForEqualsCondition(method.getName())).arg(JExpr.ref(paramExpected).invoke(method.getName()).invoke("toString")))
                                     .add(JExpr.ref(ACTUAL_DATA).invoke("put").arg(createMsgForEqualsCondition(method.getName())).arg(JExpr.ref(paramActual).invoke(method.getName()).invoke("toString")));
                         } else {
-                            condition._then()
+                            equalsCondition._then()
                                     .add(JExpr.ref(EXPECTED_DATA).invoke("put").arg(createMsgForEqualsCondition(method.getName())).arg(JExpr.ref(paramExpected).invoke(method.getName()).invoke("toString")))
                                     .add(JExpr.ref(ACTUAL_DATA).invoke("put").arg(createMsgForEqualsCondition(method.getName())).arg(JExpr.ref(paramActual).invoke(method.getName()).invoke("toString")));
                         }
@@ -267,7 +272,11 @@ public class GenerateSimilarToClass {
                     JConditional condition = block._if(JExpr.ref(LIST_TO_EXCLUDE).invoke("contains").arg(fieldName).not());
                     condition._then().decl(genericType, paramActual + fieldName, JExpr.ref(paramActual).invoke(method.getName()));
                     condition._then().decl(genericType, paramExpected + fieldName, JExpr.ref(paramExpected).invoke(method.getName()));
-                    mainBody(methodReturnType, paramActual + fieldName, paramExpected + fieldName, condition._then(), method);
+
+                    JConditional actualCondition = condition._then()._if(JExpr.ref(paramActual).invoke(method.getName()).ne(JExpr.ref("null")));
+                    JConditional expectedCondition = actualCondition._then()._if(JExpr.ref(paramExpected).invoke(method.getName()).ne(JExpr.ref("null")));
+
+                    mainBody(methodReturnType, paramActual + fieldName, paramExpected + fieldName, expectedCondition._then(), method);
                 }
             }
         }
@@ -277,7 +286,13 @@ public class GenerateSimilarToClass {
         JConditional firstConditional = block._if(JExpr.ref(LIST_TO_EXCLUDE).invoke("contains").arg(fieldName).not());
         JConditional secondConditional = firstConditional._then()._if(JExpr.ref(paramActual).invoke(method.getName()).ne(JExpr.ref("null")));
         JConditional thirdConditional = secondConditional._then()._if(JExpr.ref(paramExpected).invoke(method.getName()).ne(JExpr.ref("null")));
-        JConditional fourthConditional = thirdConditional._then()._if(JExpr.ref(paramActual).invoke(method.getName()).invoke(equalMethod).arg(JExpr.ref(paramExpected).invoke(method.getName())).ne(JExpr.ref("0")));
+        JConditional fourthConditional;
+        if (!"equals".equals(equalMethod)) {
+            fourthConditional = thirdConditional._then()._if(JExpr.ref(paramActual).invoke(method.getName()).invoke(equalMethod).arg(JExpr.ref(paramExpected).invoke(method.getName())).ne(JExpr.ref("0")));
+
+        } else {
+            fourthConditional = thirdConditional._then()._if(JExpr.ref(paramActual).invoke(method.getName()).invoke(equalMethod).arg(JExpr.ref(paramExpected).invoke(method.getName())));
+        }
         fourthConditional
                 ._then()
                 .add(JExpr.ref(EXPECTED_DATA).invoke("put").arg(createMsgForEqualsCondition(method.getName())).arg(JExpr.ref(paramExpected).invoke(method.getName()).invoke("toString")))
@@ -293,6 +308,12 @@ public class GenerateSimilarToClass {
 
     private boolean isGetMethod(Method method) {
         return method.getName().startsWith("get")
+                && (method.getParameterTypes()).length == 0
+                && (!(method.getName().equals("getClass")));
+    }
+
+    private boolean isBooleanMethod(Method method) {
+        return method.getName().startsWith("is")
                 && (method.getParameterTypes()).length == 0
                 && (!(method.getName().equals("getClass")));
     }
