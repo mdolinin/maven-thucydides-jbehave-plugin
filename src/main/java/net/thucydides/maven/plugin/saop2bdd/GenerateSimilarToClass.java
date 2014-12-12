@@ -210,6 +210,13 @@ public class GenerateSimilarToClass {
                     }
                 }
                 if (methodReturnType == List.class) {
+                    JConditional conditionFormEmptyList = block._if(JExpr.ref(paramActual).invoke(method.getName()).invoke("isEmpty").cand(JExpr.ref(paramExpected).invoke(method.getName()).invoke("isEmpty")));
+                    conditionFormEmptyList._then()._return(JExpr.TRUE);
+
+                    JConditional conditionFormNotEmptyList = block._if(JExpr.ref(paramActual).invoke(method.getName()).invoke("isEmpty").xor(JExpr.ref(paramExpected).invoke(method.getName()).invoke("isEmpty")));
+                    conditionFormNotEmptyList._then()
+                            .add(JExpr.ref(EXPECTED_DATA).invoke("put").arg(createMsgForEqualsCondition(method.getName() + " size ")).arg(codeModel.ref(String.class).staticInvoke("valueOf").arg(JExpr.ref(paramExpected).invoke(method.getName()).invoke("size"))))
+                            .add(JExpr.ref(ACTUAL_DATA).invoke("put").arg(createMsgForEqualsCondition(method.getName() + " size ")).arg(codeModel.ref(String.class).staticInvoke("valueOf").arg(JExpr.ref(paramActual).invoke(method.getName()).invoke("size"))))._return(JExpr.FALSE);
                     countArraySymbol++;
                     classNameGenericReturnType = getClassGenericReturnType(method);
                     JType genericType = codeModel.ref(classNameGenericReturnType);
