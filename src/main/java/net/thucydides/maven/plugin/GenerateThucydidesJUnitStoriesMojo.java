@@ -16,12 +16,18 @@ package net.thucydides.maven.plugin;
  * limitations under the License.
  */
 
+import com.google.common.io.Files;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.project.MavenProject;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.URL;
 
 import static net.thucydides.maven.plugin.utils.NameUtils.getClassNameFrom;
 
@@ -42,7 +48,7 @@ public class GenerateThucydidesJUnitStoriesMojo extends AbstractMojo {
     /**
      * Location of the file.
      *
-     * @parameter expression="${project.junit.stories.directory}" default-value="${project.build.testSourceDirectory}"
+     * @parameter expression="${project.junit.stories.directory}" default-value="${project.build.directory}/generated-test-sources"
      * @required
      */
     public File outputDirectory;
@@ -55,7 +61,17 @@ public class GenerateThucydidesJUnitStoriesMojo extends AbstractMojo {
      */
     public String packageForStoryStubs;
 
+    /**
+     * The Maven Project.
+     *
+     * @parameter expression="${project}"
+     * @required
+     * @readonly
+     */
+    private MavenProject project;
+
     public void execute() throws MojoExecutionException {
+        addMavenClassPath(outputDirectory);
         File storiesDir = storiesDirectory;
         findStoryFilesAndGenerateStubs(storiesDir);
     }
@@ -86,23 +102,60 @@ public class GenerateThucydidesJUnitStoriesMojo extends AbstractMojo {
         String classText = createThucydidesJunitStoryFor(className);
         try {
             createJavaClass(className, classText);
+            moveResource();
         } catch (IOException e) {
             throw new MojoExecutionException("Error creating file " + className, e);
         }
     }
 
+    private void moveResource() {
+        File utils = createUtils();
+        File customJUnitStoryFile = getFileFromResourcesByFilePath("/CustomJUnitStory.java");
+        try {
+            FileUtils.copyFile(customJUnitStoryFile, new File(utils.getAbsolutePath() + "/" + customJUnitStoryFile.getName()));
+        } catch (IOException e) {
+            getLog().error("Error while move resource " + e.getMessage());
+        }
+    }
+
     private String createThucydidesJunitStoryFor(String name) {
+        createUtils();
         return "package " + packageForStoryStubs + ";\n" +
                 "\n" +
-                "import net.thucydides.jbehave.ThucydidesJUnitStory;\n" +
+                "import " + packageForStoryStubs + ".utils.CustomJUnitStory;\n" +
                 "\n" +
-                "public class " + name + " extends ThucydidesJUnitStory {}";
+                "public class " + name + "IT" + " extends CustomJUnitStory {}";
+    }
+
+    private File createUtils() {
+        File utils = new File(outputDirectory, (packageForStoryStubs.replaceAll("\\.", "/") + "/utils"));
+        utils.mkdir();
+        return utils;
+    }
+
+    private static File getFileFromResourcesByFilePath(String filePath) {
+        URL url = FileUtils.class.getResource(filePath);
+        String file = url.getFile();
+        if (isFileInJar(file)) {
+            try {
+                File tempFile = new File(Files.createTempDir(), FilenameUtils.getName(url.getFile()));
+                IOUtils.copy(url.openStream(), org.apache.commons.io.FileUtils.openOutputStream(tempFile));
+                return tempFile;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return new File(file);
+    }
+
+    private static boolean isFileInJar(String file) {
+        return file.contains(".jar!/");
     }
 
     private void createJavaClass(String name, String text) throws IOException {
         File pd = new File(outputDirectory, packageForStoryStubs.replaceAll("\\.", "/"));
         pd.mkdirs();
-        FileWriter out = new FileWriter(new File(pd, name + ".java"));
+        FileWriter out = new FileWriter(new File(pd, name + "IT" + ".java"));
         try {
             out.append(text);
         } finally {
@@ -111,7 +164,7 @@ public class GenerateThucydidesJUnitStoriesMojo extends AbstractMojo {
         }
     }
 
-    public String getExtension(String fileName) {
+    private String getExtension(String fileName) {
         String extension = "";
 
         int i = fileName.lastIndexOf('.');
@@ -121,5 +174,14 @@ public class GenerateThucydidesJUnitStoriesMojo extends AbstractMojo {
             extension = fileName.substring(i + 1);
         }
         return extension;
+    }
+
+    private MavenProject getProject() {
+        return project;
+    }
+
+    private void addMavenClassPath(File path) {
+        if (getProject() != null)
+            getProject().addTestCompileSourceRoot(path.getAbsolutePath());
     }
 }
