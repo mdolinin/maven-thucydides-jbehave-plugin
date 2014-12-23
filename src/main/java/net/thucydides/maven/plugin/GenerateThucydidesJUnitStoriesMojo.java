@@ -24,9 +24,7 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.net.URL;
 
 import static net.thucydides.maven.plugin.utils.NameUtils.getClassNameFrom;
@@ -111,10 +109,47 @@ public class GenerateThucydidesJUnitStoriesMojo extends AbstractMojo {
     private void moveResource() {
         File utils = createUtils();
         File customJUnitStoryFile = getFileFromResourcesByFilePath("/CustomJUnitStory.java");
+        changePackageName(customJUnitStoryFile);
         try {
-            FileUtils.copyFile(customJUnitStoryFile, new File(utils.getAbsolutePath() + "/" + customJUnitStoryFile.getName()));
+            if (!new File(utils.getAbsolutePath() + "/" + customJUnitStoryFile.getName()).exists())
+                FileUtils.copyFile(customJUnitStoryFile, new File(utils.getAbsolutePath() + "/" + customJUnitStoryFile.getName()));
         } catch (IOException e) {
             getLog().error("Error while move resource " + e.getMessage());
+        }
+    }
+
+    private void changePackageName(File file) {
+        String packageLine = "package " + packageForStoryStubs + ".utils;\n";
+        FileOutputStream fos = null;
+        BufferedReader br = null;
+        String result = "";
+        String line = "";
+        try {
+            br = new BufferedReader(new FileReader(file));
+            while ((line = br.readLine()) != null) {
+                if (line.contains("package")) {
+                    result += packageLine;
+                } else {
+                    result += line + "\n";
+                }
+            }
+            file.delete();
+            fos = new FileOutputStream(file);
+            fos.write(result.getBytes());
+            fos.flush();
+        } catch (Exception e) {
+            getLog().error(e.getMessage());
+        } finally {
+            try {
+                if (br != null) {
+                    br.close();
+                }
+                if (fos != null) {
+                    fos.close();
+                }
+            } catch (Exception e) {
+                getLog().error(e.getMessage());
+            }
         }
     }
 
@@ -129,7 +164,8 @@ public class GenerateThucydidesJUnitStoriesMojo extends AbstractMojo {
 
     private File createUtils() {
         File utils = new File(outputDirectory, (packageForStoryStubs.replaceAll("\\.", "/") + "/utils"));
-        utils.mkdir();
+        if (!utils.exists())
+            utils.mkdir();
         return utils;
     }
 
