@@ -109,8 +109,8 @@ public class GenerateThucydidesJUnitStoriesMojo extends AbstractMojo {
     private void moveResource() {
         File utils = createUtils();
         File customJUnitStoryFile = getFileFromResourcesByFilePath("/CustomJUnitStory.java");
-        changePackageName(customJUnitStoryFile);
         try {
+            changePackageName(customJUnitStoryFile);
             if (!new File(utils.getAbsolutePath() + "/" + customJUnitStoryFile.getName()).exists())
                 FileUtils.copyFile(customJUnitStoryFile, new File(utils.getAbsolutePath() + "/" + customJUnitStoryFile.getName()));
         } catch (IOException e) {
@@ -118,39 +118,11 @@ public class GenerateThucydidesJUnitStoriesMojo extends AbstractMojo {
         }
     }
 
-    private void changePackageName(File file) {
+    private void changePackageName(File file) throws IOException {
         String packageLine = "package " + packageForStoryStubs + ".utils;\n";
-        FileOutputStream fos = null;
-        BufferedReader br = null;
-        String result = "";
-        String line = "";
-        try {
-            br = new BufferedReader(new FileReader(file));
-            while ((line = br.readLine()) != null) {
-                if (line.contains("package")) {
-                    result += packageLine;
-                } else {
-                    result += line + "\n";
-                }
-            }
-            file.delete();
-            fos = new FileOutputStream(file);
-            fos.write(result.getBytes());
-            fos.flush();
-        } catch (Exception e) {
-            getLog().error(e.getMessage());
-        } finally {
-            try {
-                if (br != null) {
-                    br.close();
-                }
-                if (fos != null) {
-                    fos.close();
-                }
-            } catch (Exception e) {
-                getLog().error(e.getMessage());
-            }
-        }
+        String content = IOUtils.toString(new FileInputStream(file));
+        content = content.replaceAll("package (.*)", packageLine);
+        IOUtils.write(content, new FileOutputStream(file));
     }
 
     private String createThucydidesJunitStoryFor(String name) {
