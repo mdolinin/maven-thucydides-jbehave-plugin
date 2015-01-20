@@ -1,5 +1,6 @@
 package net.thucydides.maven.plugin;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -11,8 +12,11 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class WhenGenerateSoapBddStepsTest {
     private String expectedPathToFile = "./src/test/java/net/thucydides/maven/plugin/test/example/HelloWorldImplServiceSteps.java";
@@ -44,8 +48,30 @@ public class WhenGenerateSoapBddStepsTest {
             e.printStackTrace();
         }
         File destinationDirectory = new File(outputDirectory, plugin.soapServicePackages[0].replaceAll("\\.", "/"));
-        File expectedFile = new File(destinationDirectory, "HelloWorldImplServiceSteps.java");
-        File actualFile = new File(expectedPathToFile);
-        assertEquals(FileUtils.readLines(actualFile), FileUtils.readLines(expectedFile));
+        File actualFile = new File(destinationDirectory, "HelloWorldImplServiceSteps.java");
+        File expectedFile = new File(expectedPathToFile);
+        List<String> actualFileContent = FileUtils.readLines(actualFile);
+        List<String> expectedFileContent = FileUtils.readLines(expectedFile);
+        assertEquals("Number of lines in files is different.", actualFileContent.size(), expectedFileContent.size());
+        List<String> actualFileCodeBlocks = splitFileByEmptyLines(actualFileContent);
+        List<String> expectedFileCodeBlocks = splitFileByEmptyLines(expectedFileContent);
+        assertTrue("Files are not equivalent.", CollectionUtils.isEqualCollection(expectedFileCodeBlocks, actualFileCodeBlocks));
+    }
+
+    private List<String> splitFileByEmptyLines(List<String> fileLines) {
+        List<String> result = new ArrayList<String>();
+        StringBuilder stringBuilder = new StringBuilder();
+        for (String line : fileLines) {
+            if (line.isEmpty()) {
+                result.add(stringBuilder.toString());
+                //clean string builder
+                stringBuilder.setLength(0);
+            } else {
+                stringBuilder.append(line);
+            }
+        }
+        //add last line
+        result.add(stringBuilder.toString());
+        return result;
     }
 }
