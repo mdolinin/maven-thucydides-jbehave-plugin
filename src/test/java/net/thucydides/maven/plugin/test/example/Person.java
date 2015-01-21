@@ -13,7 +13,7 @@ import java.util.List;
 public class Person {
     private List<String> attribute1;
     private String attribute2;
-    private List<Address> attribute3;
+    private List<Address> address;
     private Address attribute4;
     private String attribute5;
     private BigDecimal attribute6;
@@ -48,12 +48,12 @@ public class Person {
         this.attribute2 = attribute2;
     }
 
-    public List<Address> getAttribute3() {
-        return attribute3;
+    public List<Address> getAddress() {
+        return address;
     }
 
-    public void setAttribute3(List<Address> attribute3) {
-        this.attribute3 = attribute3;
+    public void setAddress(List<Address> address) {
+        this.address = address;
     }
 
     public Address getAttribute4() {

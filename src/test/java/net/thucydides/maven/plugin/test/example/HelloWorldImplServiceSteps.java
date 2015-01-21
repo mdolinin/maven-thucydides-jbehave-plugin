@@ -46,10 +46,10 @@ public class HelloWorldImplServiceSteps {
                 String attribute2 = getVariableAsString(attribute2Value);
                 person.setAttribute2(attribute2);
             }
-            if (!row.get("attribute3").isEmpty()) {
-                String attribute3Value = row.get("attribute3");
-                List<Address> attribute3 = getVariableValue(attribute3Value);
-                person.getAttribute3().addAll(attribute3);
+            if (!row.get("address").isEmpty()) {
+                String addressValue = row.get("address");
+                List<Address> address = getVariableValue(addressValue);
+                person.getAddress().addAll(address);
             }
             if (!row.get("attribute4").isEmpty()) {
                 String attribute4Value = row.get("attribute4");
@@ -110,32 +110,32 @@ public class HelloWorldImplServiceSteps {
         save(attribute1Value, attribute1List);
     }
 
-    @Given("address '$stringAttribute1Key' '$stringAttribute2Key' '$stringAttribute3Key' and save to $attribute3 - hello world impl service")
-    public void givenAddress(String stringAttribute1Key, String stringAttribute2Key, String stringAttribute3Key, String attribute3) {
-        Address attribute3Value = new Address();
+    @Given("address '$stringAttribute1Key' '$stringAttribute2Key' '$stringAttribute3Key' and save to $address - hello world impl service")
+    public void givenAddress(String stringAttribute1Key, String stringAttribute2Key, String stringAttribute3Key, String address) {
+        Address addressValue = new Address();
         if (!stringAttribute1Key.isEmpty()) {
             String stringAttribute1 = getVariableAsString(stringAttribute1Key);
-            attribute3Value.setAttribute1(stringAttribute1);
+            addressValue.setAttribute1(stringAttribute1);
         }
         if (!stringAttribute2Key.isEmpty()) {
             String stringAttribute2 = getVariableAsString(stringAttribute2Key);
-            attribute3Value.setAttribute2(stringAttribute2);
+            addressValue.setAttribute2(stringAttribute2);
         }
         if (!stringAttribute3Key.isEmpty()) {
             String stringAttribute3 = getVariableAsString(stringAttribute3Key);
-            attribute3Value.setAttribute3(stringAttribute3);
+            addressValue.setAttribute3(stringAttribute3);
         }
-        save(attribute3, attribute3Value);
+        save(address, addressValue);
     }
 
-    @Given("list address $addressKeys and save to $attribute3Value")
-    public void givenListAddress(List<String> addressKeys, String attribute3Value) {
-        List<Address> attribute3List = new ArrayList<Address>();
+    @Given("list address $addressKeys and save to $addressValue")
+    public void givenListAddress(List<String> addressKeys, String addressValue) {
+        List<Address> addressList = new ArrayList<Address>();
         for (String addressKey: addressKeys) {
             Address address = getVariableValue(addressKey);
-            attribute3List.add(address);
+            addressList.add(address);
         }
-        save(attribute3Value, attribute3List);
+        save(addressValue, addressList);
     }
 
     @When("get hello world as string '$arg0Key' and save response to $stringKey")
