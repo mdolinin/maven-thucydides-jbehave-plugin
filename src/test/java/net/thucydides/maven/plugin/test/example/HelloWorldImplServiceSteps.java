@@ -100,14 +100,14 @@ public class HelloWorldImplServiceSteps {
         save(personKey, person);
     }
 
-    @Given("list string $stringKeys and save to $attribute1")
-    public void givenListString(List<String> stringKeys, String attribute1) {
-        List<String> attribute1Value = new ArrayList<String>();
+    @Given("list string $stringKeys and save to $attribute1Value")
+    public void givenListString(List<String> stringKeys, String attribute1Value) {
+        List<String> attribute1List = new ArrayList<String>();
         for (String stringKey: stringKeys) {
             String string = getVariableAsString(stringKey);
-            attribute1Value.add(string);
+            attribute1List.add(string);
         }
-        save(attribute1, attribute1Value);
+        save(attribute1Value, attribute1List);
     }
 
     @Given("address '$stringAttribute1Key' '$stringAttribute2Key' '$stringAttribute3Key' and save to $attribute3 - hello world impl service")
@@ -128,14 +128,14 @@ public class HelloWorldImplServiceSteps {
         save(attribute3, attribute3Value);
     }
 
-    @Given("list address $addressKeys and save to $attribute3")
-    public void givenListAddress(List<String> addressKeys, String attribute3) {
-        List<Address> attribute3Value = new ArrayList<Address>();
+    @Given("list address $addressKeys and save to $attribute3Value")
+    public void givenListAddress(List<String> addressKeys, String attribute3Value) {
+        List<Address> attribute3List = new ArrayList<Address>();
         for (String addressKey: addressKeys) {
             Address address = getVariableValue(addressKey);
-            attribute3Value.add(address);
+            attribute3List.add(address);
         }
-        save(attribute3, attribute3Value);
+        save(attribute3Value, attribute3List);
     }
 
     @When("get hello world as string '$arg0Key' and save response to $stringKey")
