@@ -30,7 +30,7 @@ public class GenerateGivenSteps {
     private JDefinedClass serviceStepsRawClass;
     private GenerateGivenStepsForList generateGivenStepsForList;
     private Set<Class<?>> types = new HashSet<Class<?>>();
-    private static final int PARAMETER_COUNT=10;
+    private static final int PARAMETER_COUNT = 10;
 
     public GenerateGivenSteps(JCodeModel codeModel, JDefinedClass serviceStepsRawClass, GenerateGivenStepsForList generateGivenStepsForList) {
         this.codeModel = codeModel;
@@ -120,7 +120,7 @@ public class GenerateGivenSteps {
                     generateFor(fieldGenericClass, fieldNameValue, fieldName);
                     //generate given steps for Lists
                     if (fieldClass.equals(List.class)) {
-                        generateGivenStepsForList.generateFor(fieldClass, fieldGenericClass, fieldNameValue, fieldName);
+                        generateGivenStepsForList.generateFor(fieldClass, fieldGenericClass, fieldName + "List", fieldName + "Value");
                     }
                 }
                 //add setter call to when method body
