@@ -98,7 +98,7 @@ public class GenerateGivenSteps {
                 //create local variable
                 ifBlock._then().decl(codeModel.ref(String.class), fieldNameValue, getValueFromRow);
                 //get object from thucydides session
-                addGetValueFromVariable(codeModel, serviceStepsRawClass, givenMethod, ifBlock._then(), field.getClass(), modelFieldClass, fieldName, fieldNameValue);
+                addGetValueFromVariable(codeModel, serviceStepsRawClass, givenMethod, ifBlock._then(), field.getType(), modelFieldClass, fieldName, fieldNameValue);
                 JInvocation callSetter;
                 if (fieldGenericClass == null) {
                     Method[] methods = type.getMethods();
