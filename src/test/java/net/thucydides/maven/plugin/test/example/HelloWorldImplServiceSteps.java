@@ -58,7 +58,7 @@ public class HelloWorldImplServiceSteps {
             }
             if (!row.get("attribute5").isEmpty()) {
                 String attribute5Value = row.get("attribute5");
-                String attribute5 = getVariableAsString(attribute5Value);
+                AccountingMethod attribute5 = getVariableAsAccountingMethod(attribute5Value);
                 person.setAttribute5(attribute5);
             }
             if (!row.get("attribute6").isEmpty()) {
@@ -136,6 +136,14 @@ public class HelloWorldImplServiceSteps {
             addressList.add(address);
         }
         save(addressValue, addressList);
+    }
+
+    private AccountingMethod getVariableAsAccountingMethod(String key) {
+        try {
+            return ((AccountingMethod) Thucydides.getCurrentSession().get(key));
+        } catch (AssertionError _x) {
+            return AccountingMethod.fromValue(key);
+        }
     }
 
     @When("get hello world as string '$arg0Key' and save response to $stringKey")
