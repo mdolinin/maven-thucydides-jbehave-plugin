@@ -172,6 +172,7 @@ public class GenerateGivenSteps {
                 }
                 callSetter.arg(JExpr.ref(localVariableParameterName));
                 fieldName = addParamWithUniqueName(givenMethod, String.class, fieldName);
+                types.add(type);
                 if (fieldGenericClass == null) {
                     generateFor(fieldClass, localVariableParameterName, fieldName);
                 } else {

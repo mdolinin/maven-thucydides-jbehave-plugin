@@ -13,10 +13,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 
 public class GenerateSimilarToClass {
@@ -41,6 +38,9 @@ public class GenerateSimilarToClass {
     private String[] counterSymbol = new String[]{"o", "i", "j", "k", "m", "n"};
     private int countArraySymbol = 0;
     int c = 0;
+    private boolean isSecond;
+    private Class<?> duplicateMethodReturnType;
+    private ArrayList<Class> dublicateType = new ArrayList<Class>();
 
 
     public JClass createGenerateSimilarToClazz(JCodeModel codeModel, Class<?> type, String nameClazz, String packageName) {
@@ -168,6 +168,9 @@ public class GenerateSimilarToClass {
 
     private void mainBody(Class<?> type, String paramActual, String paramExpected, JBlock block, Method superMethod) {
         Class<?> classNameGenericReturnType = null;
+        if (duplicateMethodReturnType == null) {
+            duplicateMethodReturnType = type;
+        }
         if (type.getName().equals(void.class.getName())) {
             return;
         }
@@ -216,12 +219,13 @@ public class GenerateSimilarToClass {
                 }
                 if (methodReturnType == List.class) {
                     JConditional conditionFormEmptyList = block._if(JExpr.ref(paramActual).invoke(method.getName()).invoke("isEmpty").cand(JExpr.ref(paramExpected).invoke(method.getName()).invoke("isEmpty")));
-                    conditionFormEmptyList._then()._return(JExpr.TRUE);
+//                    conditionFormEmptyList._then()._return(JExpr.TRUE);
 
                     JConditional conditionFormNotEmptyList = block._if(JExpr.ref(paramActual).invoke(method.getName()).invoke("size").ne(JExpr.ref(paramExpected).invoke(method.getName()).invoke("size")));
                     conditionFormNotEmptyList._then()
                             .add(JExpr.ref(EXPECTED_DATA).invoke("put").arg(createMsgForEqualsCondition(method.getName() + " size ")).arg(codeModel.ref(String.class).staticInvoke("valueOf").arg(JExpr.ref(paramExpected).invoke(method.getName()).invoke("size"))))
-                            .add(JExpr.ref(ACTUAL_DATA).invoke("put").arg(createMsgForEqualsCondition(method.getName() + " size ")).arg(codeModel.ref(String.class).staticInvoke("valueOf").arg(JExpr.ref(paramActual).invoke(method.getName()).invoke("size"))))._return(JExpr.FALSE);
+                            .add(JExpr.ref(ACTUAL_DATA).invoke("put").arg(createMsgForEqualsCondition(method.getName() + " size ")).arg(codeModel.ref(String.class).staticInvoke("valueOf").arg(JExpr.ref(paramActual).invoke(method.getName()).invoke("size"))));
+//                            //_return(JExpr.FALSE);
                     countArraySymbol++;
                     classNameGenericReturnType = getClassGenericReturnType(method);
                     JType genericType = codeModel.ref(classNameGenericReturnType);
@@ -275,8 +279,15 @@ public class GenerateSimilarToClass {
 
                     JConditional actualCondition = condition._then()._if(JExpr.ref(paramActual).invoke(method.getName()).ne(JExpr.ref("null")));
                     JConditional expectedCondition = actualCondition._then()._if(JExpr.ref(paramExpected).invoke(method.getName()).ne(JExpr.ref("null")));
-
-                    mainBody(methodReturnType, paramActual + fieldName, paramExpected + fieldName, expectedCondition._then(), method);
+                    if (dublicateType.contains(methodReturnType) && !isSecond) {
+                        return;
+                    } else if (dublicateType.contains(methodReturnType)) {
+                        isSecond = true;
+                        mainBody(methodReturnType, paramActual + fieldName, paramExpected + fieldName, expectedCondition._then(), method);
+                    } else {
+                        dublicateType.add(methodReturnType);
+                        mainBody(methodReturnType, paramActual + fieldName, paramExpected + fieldName, expectedCondition._then(), method);
+                    }
                 }
             }
         }
