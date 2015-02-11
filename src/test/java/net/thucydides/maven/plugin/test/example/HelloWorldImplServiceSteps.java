@@ -96,6 +96,16 @@ public class HelloWorldImplServiceSteps {
                 XMLGregorianCalendar attribute12 = getVariableAsXMLGregorianCalendar(attribute12Value);
                 person.setAttribute12(attribute12);
             }
+            if (!row.get("attribute13").isEmpty()) {
+                String attribute13Value = row.get("attribute13");
+                Person attribute13 = getVariableValue(attribute13Value);
+                person.setAttribute13(attribute13);
+            }
+            if (!row.get("attribute14").isEmpty()) {
+                String attribute14Value = row.get("attribute14");
+                List<Person> attribute14 = getVariableValue(attribute14Value);
+                person.getAttribute14().addAll(attribute14);
+            }
         }
         save(personKey, person);
     }
@@ -144,6 +154,16 @@ public class HelloWorldImplServiceSteps {
         } catch (AssertionError _x) {
             return AccountingMethod.fromValue(key);
         }
+    }
+
+    @Given("list person $personKeys and save to $attribute14Value")
+    public void givenListPerson(List<String> personKeys, String attribute14Value) {
+        List<Person> attribute14List = new ArrayList<Person>();
+        for (String personKey: personKeys) {
+            Person person = getVariableValue(personKey);
+            attribute14List.add(person);
+        }
+        save(attribute14Value, attribute14List);
     }
 
     @When("get hello world as string '$arg0Key' and save response to $stringKey")
