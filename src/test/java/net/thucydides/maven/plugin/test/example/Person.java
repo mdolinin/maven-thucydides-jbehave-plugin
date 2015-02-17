@@ -23,6 +23,24 @@ public class Person {
     private Long attribute10;
     private BigInteger attribute11;
     private XMLGregorianCalendar attribute12;
+    private Person attribute13;
+    private List<Person> attribute14;
+
+    public List<Person> getAttribute14() {
+        return attribute14;
+    }
+
+    public void setAttribute14(List<Person> attribute14) {
+        this.attribute14 = attribute14;
+    }
+
+    public Person getAttribute13() {
+        return attribute13;
+    }
+
+    public void setAttribute13(Person attribute13) {
+        this.attribute13 = attribute13;
+    }
 
     public List<String> getAttribute1() {
         return attribute1;

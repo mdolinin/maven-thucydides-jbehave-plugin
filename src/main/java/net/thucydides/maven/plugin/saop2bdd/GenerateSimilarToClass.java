@@ -13,10 +13,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 
 public class GenerateSimilarToClass {
@@ -41,6 +38,9 @@ public class GenerateSimilarToClass {
     private String[] counterSymbol = new String[]{"o", "i", "j", "k", "m", "n"};
     private int countArraySymbol = 0;
     int c = 0;
+    private boolean isSecond;
+    private Class<?> duplicateMethodReturnType;
+    private ArrayList<Class> dublicateType = new ArrayList<Class>();
 
 
     public JClass createGenerateSimilarToClazz(JCodeModel codeModel, Class<?> type, String nameClazz, String packageName) {
@@ -148,26 +148,42 @@ public class GenerateSimilarToClass {
     }
 
     private JExpression createMsgForEqualsCondition(String name) {
+        String fieldName = null;
         JExpression exp = null;
-        name = name.substring(3);
+        if (name.startsWith("get")) {
+            fieldName = name.substring(3);
+        } else {
+            fieldName = name.substring(2);
+        }
+
         if (countArraySymbol == 0) {
-            exp = JExpr.lit(name + " ");
+            exp = JExpr.lit(fieldName + " ");
         }
         if (countArraySymbol == 1) {
-            exp = JExpr.lit(name + " in row ").plus(JExpr.ref(counterSymbol[countArraySymbol]));
+            exp = JExpr.lit(fieldName + " in row ").plus(JExpr.ref(counterSymbol[countArraySymbol]));
         }
         if (countArraySymbol == 2) {
-            exp = JExpr.lit(name + " in row ").plus(JExpr.ref(counterSymbol[1])).plus(JExpr.ref(counterSymbol[2]));
+            exp = JExpr.lit(fieldName + " in row ").plus(JExpr.ref(counterSymbol[1])).plus(JExpr.ref(counterSymbol[2]));
         }
         if (countArraySymbol == 3) {
-            exp = JExpr.lit(name + " in row ").plus(JExpr.ref(counterSymbol[1])).plus(JExpr.ref(counterSymbol[2])).plus(JExpr.ref(counterSymbol[3]));
+            exp = JExpr.lit(fieldName + " in row ").plus(JExpr.ref(counterSymbol[1])).plus(JExpr.ref(counterSymbol[2])).plus(JExpr.ref(counterSymbol[3]));
         }
         return exp;
+    }
+
+    private String getFieldName(Method method) {
+        String fieldName = null;
+        if (isGetMethod(method)) fieldName = method.getName().substring(3);
+        else if (isBooleanMethod(method)) fieldName = method.getName().substring(2);
+        return makeFirstLetterLowerCase(fieldName);
     }
 
 
     private void mainBody(Class<?> type, String paramActual, String paramExpected, JBlock block, Method superMethod) {
         Class<?> classNameGenericReturnType = null;
+        if (duplicateMethodReturnType == null) {
+            duplicateMethodReturnType = type;
+        }
         if (type.getName().equals(void.class.getName())) {
             return;
         }
@@ -178,7 +194,7 @@ public class GenerateSimilarToClass {
                 Class<?> methodReturnType = method.getReturnType();
                 if (isSimpleType(methodReturnType)) {
                     if (methodReturnType.isEnum()) {
-                        fieldName = makeFirstLetterLowerCase(method.getName().substring(3));
+                        fieldName = getFieldName(method);
                         JConditional listExcludeCondition = block._if(JExpr.ref(LIST_TO_EXCLUDE).invoke("contains").arg(fieldName).not());
                         JConditional actualCondition = listExcludeCondition._then()._if(JExpr.ref(paramActual).invoke(method.getName()).ne(JExpr.ref("null")));
                         JConditional expectedCondition = actualCondition._then()._if(JExpr.ref(paramExpected).invoke(method.getName()).ne(JExpr.ref("null")));
@@ -195,9 +211,7 @@ public class GenerateSimilarToClass {
                         }
                         continue;
                     }
-
-                    fieldName = method.getName().substring(3);
-                    fieldName = makeFirstLetterLowerCase(fieldName);
+                    fieldName = getFieldName(method);
                     String equalMethod = "compareTo";
                     if (isXMLGregorianCalendar(methodReturnType)) {
                         equalMethod = "compare";
@@ -216,12 +230,11 @@ public class GenerateSimilarToClass {
                 }
                 if (methodReturnType == List.class) {
                     JConditional conditionFormEmptyList = block._if(JExpr.ref(paramActual).invoke(method.getName()).invoke("isEmpty").cand(JExpr.ref(paramExpected).invoke(method.getName()).invoke("isEmpty")));
-                    conditionFormEmptyList._then()._return(JExpr.TRUE);
 
                     JConditional conditionFormNotEmptyList = block._if(JExpr.ref(paramActual).invoke(method.getName()).invoke("size").ne(JExpr.ref(paramExpected).invoke(method.getName()).invoke("size")));
                     conditionFormNotEmptyList._then()
                             .add(JExpr.ref(EXPECTED_DATA).invoke("put").arg(createMsgForEqualsCondition(method.getName() + " size ")).arg(codeModel.ref(String.class).staticInvoke("valueOf").arg(JExpr.ref(paramExpected).invoke(method.getName()).invoke("size"))))
-                            .add(JExpr.ref(ACTUAL_DATA).invoke("put").arg(createMsgForEqualsCondition(method.getName() + " size ")).arg(codeModel.ref(String.class).staticInvoke("valueOf").arg(JExpr.ref(paramActual).invoke(method.getName()).invoke("size"))))._return(JExpr.FALSE);
+                            .add(JExpr.ref(ACTUAL_DATA).invoke("put").arg(createMsgForEqualsCondition(method.getName() + " size ")).arg(codeModel.ref(String.class).staticInvoke("valueOf").arg(JExpr.ref(paramActual).invoke(method.getName()).invoke("size"))));
                     countArraySymbol++;
                     classNameGenericReturnType = getClassGenericReturnType(method);
                     JType genericType = codeModel.ref(classNameGenericReturnType);
@@ -267,16 +280,22 @@ public class GenerateSimilarToClass {
                     countArraySymbol--;
                 } else if (methodReturnType != List.class && !isSimpleType(methodReturnType)) {
                     JType genericType = codeModel.ref(methodReturnType);
-                    fieldName = method.getName().substring(3);
-                    fieldName = makeFirstLetterLowerCase(fieldName);
+                    fieldName = getFieldName(method);
                     JConditional condition = block._if(JExpr.ref(LIST_TO_EXCLUDE).invoke("contains").arg(fieldName).not());
                     condition._then().decl(genericType, paramActual + fieldName, JExpr.ref(paramActual).invoke(method.getName()));
                     condition._then().decl(genericType, paramExpected + fieldName, JExpr.ref(paramExpected).invoke(method.getName()));
 
                     JConditional actualCondition = condition._then()._if(JExpr.ref(paramActual).invoke(method.getName()).ne(JExpr.ref("null")));
                     JConditional expectedCondition = actualCondition._then()._if(JExpr.ref(paramExpected).invoke(method.getName()).ne(JExpr.ref("null")));
-
-                    mainBody(methodReturnType, paramActual + fieldName, paramExpected + fieldName, expectedCondition._then(), method);
+                    if (dublicateType.contains(methodReturnType) && !isSecond) {
+                        return;
+                    } else if (dublicateType.contains(methodReturnType)) {
+                        isSecond = true;
+                        mainBody(methodReturnType, paramActual + fieldName, paramExpected + fieldName, expectedCondition._then(), method);
+                    } else {
+                        dublicateType.add(methodReturnType);
+                        mainBody(methodReturnType, paramActual + fieldName, paramExpected + fieldName, expectedCondition._then(), method);
+                    }
                 }
             }
         }

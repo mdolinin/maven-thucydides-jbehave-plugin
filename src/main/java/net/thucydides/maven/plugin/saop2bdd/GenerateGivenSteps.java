@@ -114,6 +114,7 @@ public class GenerateGivenSteps {
                     callSetter = typeLocalVar.invoke("get" + capitalize(trimmedFieldName)).invoke("addAll");
                 }
                 callSetter.arg(JExpr.ref(fieldName));
+                types.add(type);
                 if (fieldGenericClass == null) {
                     generateFor(fieldClass, fieldNameValue, fieldName);
                 } else {
@@ -172,6 +173,7 @@ public class GenerateGivenSteps {
                 }
                 callSetter.arg(JExpr.ref(localVariableParameterName));
                 fieldName = addParamWithUniqueName(givenMethod, String.class, fieldName);
+                types.add(type);
                 if (fieldGenericClass == null) {
                     generateFor(fieldClass, localVariableParameterName, fieldName);
                 } else {
