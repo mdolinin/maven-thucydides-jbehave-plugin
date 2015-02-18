@@ -10,28 +10,99 @@ import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import net.thucydides.core.Thucydides;
+import org.hamcrest.Matchers;
 import org.jbehave.core.annotations.Given;
+import org.jbehave.core.annotations.Then;
 import org.jbehave.core.annotations.When;
 import org.jbehave.core.model.ExamplesTable;
+import org.junit.Assert;
 
 public class HelloWorldImplServiceSteps {
 
     public HelloWorld helloWorldField = new HelloWorldImplService().getHelloWorldImplPort();
 
-    @When("generate person instance '$personKey' and save response to $voidValueKey")
-    public void whenGeneratePersonInstance(String personKey, String voidValueKey) {
-        Person person = null;
-        if (!personKey.isEmpty()) {
-            person = getVariableValue(personKey);
+    @When("generate big decimal '$valueKey' and save response to $bigDecimalKey")
+    public void whenGenerateBigDecimal(String valueKey, String bigDecimalKey) {
+        String value = null;
+        if (!valueKey.isEmpty()) {
+            value = getVariableAsString(valueKey);
         }
-        helloWorldField.generatePersonInstance(person);
+        BigDecimal bigDecimal = helloWorldField.generateBigDecimal(value);
+        save(bigDecimalKey, bigDecimal);
     }
 
-    @Given("person saved to '$personKey - hello world impl service' with parameters: $parameters")
-    public void givenPerson(String personKey, ExamplesTable parameters)
+    @Then("$actualBigDecimalKey big decimal is equal to $expectedBigDecimalKey")
+    public void thenBigDecimal(String actualBigDecimalKey, String expectedBigDecimalKey) {
+        BigDecimal actualBigDecimal = getVariableAsBigDecimal(actualBigDecimalKey);
+        BigDecimal expectedBigDecimal = getVariableAsBigDecimal(expectedBigDecimalKey);
+        Assert.assertThat(actualBigDecimal, Matchers.comparesEqualTo(expectedBigDecimal));
+    }
+
+    @When("generate x m l gregorian calendar '$valueKey' and save response to $xMLGregorianCalendarKey")
+    public void whenGenerateXMLGregorianCalendar(String valueKey, String xMLGregorianCalendarKey) {
+        String value = null;
+        if (!valueKey.isEmpty()) {
+            value = getVariableAsString(valueKey);
+        }
+        XMLGregorianCalendar xMLGregorianCalendar = helloWorldField.generateXMLGregorianCalendar(value);
+        save(xMLGregorianCalendarKey, xMLGregorianCalendar);
+    }
+
+    @Then("$actualXMLGregorianCalendarKey x m l gregorian calendar is equal to $expectedXMLGregorianCalendarKey")
+    public void thenXMLGregorianCalendar(String actualXMLGregorianCalendarKey, String expectedXMLGregorianCalendarKey)
         throws DatatypeConfigurationException
     {
-        Person person = new Person();
+        XMLGregorianCalendar actualXMLGregorianCalendar = getVariableAsXMLGregorianCalendar(actualXMLGregorianCalendarKey);
+        XMLGregorianCalendar expectedXMLGregorianCalendar = getVariableAsXMLGregorianCalendar(expectedXMLGregorianCalendarKey);
+        Assert.assertEquals(actualXMLGregorianCalendar, expectedXMLGregorianCalendar);
+    }
+
+    @When("generate integer1 and save response to $integerKey")
+    public void whenGenerateInteger1(String integerKey) {
+        Integer integer = helloWorldField.generateInteger1();
+        save(integerKey, integer);
+    }
+
+    @Then("$actualIntegerKey integer is equal to $expectedIntegerKey")
+    public void thenInteger(String actualIntegerKey, String expectedIntegerKey) {
+        Integer actualInteger = getVariableAsInteger(actualIntegerKey);
+        Integer expectedInteger = getVariableAsInteger(expectedIntegerKey);
+        Assert.assertEquals(actualInteger, expectedInteger);
+    }
+
+    @When("generate integer2 and save response to $integerKey")
+    public void whenGenerateInteger2(String integerKey) {
+        Integer integer = helloWorldField.generateInteger2();
+        save(integerKey, integer);
+    }
+
+    @When("generate big integer and save response to $bigIntegerKey")
+    public void whenGenerateBigInteger(String bigIntegerKey) {
+        BigInteger bigInteger = helloWorldField.generateBigInteger();
+        save(bigIntegerKey, bigInteger);
+    }
+
+    @Then("$actualBigIntegerKey big integer is equal to $expectedBigIntegerKey")
+    public void thenBigInteger(String actualBigIntegerKey, String expectedBigIntegerKey) {
+        BigInteger actualBigInteger = getVariableAsBigInteger(actualBigIntegerKey);
+        BigInteger expectedBigInteger = getVariableAsBigInteger(expectedBigIntegerKey);
+        Assert.assertEquals(actualBigInteger, expectedBigInteger);
+    }
+
+    @When("generate person instance '$parameterKey' and save response to $voidValueKey")
+    public void whenGeneratePersonInstance(String parameterKey, String voidValueKey) {
+        Person parameter = null;
+        if (!parameterKey.isEmpty()) {
+            parameter = getVariableValue(parameterKey);
+        }
+        helloWorldField.generatePersonInstance(parameter);
+    }
+
+    @Given("person saved to '$parameterKey - hello world impl service' with parameters: $parameters")
+    public void givenPerson(String parameterKey, ExamplesTable parameters)
+        throws DatatypeConfigurationException
+    {
+        Person parameter = new Person();
         if (parameters.getRows().size()!= 1) {
             throw new AssertionError("Wrong number of parameters.");
         }
@@ -39,75 +110,75 @@ public class HelloWorldImplServiceSteps {
             if (!row.get("attribute1").isEmpty()) {
                 String attribute1Value = row.get("attribute1");
                 List<String> attribute1 = getVariableValue(attribute1Value);
-                person.getAttribute1().addAll(attribute1);
+                parameter.getAttribute1().addAll(attribute1);
             }
             if (!row.get("attribute2").isEmpty()) {
                 String attribute2Value = row.get("attribute2");
                 String attribute2 = getVariableAsString(attribute2Value);
-                person.setAttribute2(attribute2);
+                parameter.setAttribute2(attribute2);
             }
             if (!row.get("address").isEmpty()) {
                 String addressValue = row.get("address");
                 List<Address> address = getVariableValue(addressValue);
-                person.getAddress().addAll(address);
+                parameter.getAddress().addAll(address);
             }
             if (!row.get("attribute4").isEmpty()) {
                 String attribute4Value = row.get("attribute4");
                 Address attribute4 = getVariableValue(attribute4Value);
-                person.setAttribute4(attribute4);
+                parameter.setAttribute4(attribute4);
             }
             if (!row.get("attribute5").isEmpty()) {
                 String attribute5Value = row.get("attribute5");
                 AccountingMethod attribute5 = getVariableAsAccountingMethod(attribute5Value);
-                person.setAttribute5(attribute5);
+                parameter.setAttribute5(attribute5);
             }
             if (!row.get("attribute6").isEmpty()) {
                 String attribute6Value = row.get("attribute6");
                 BigDecimal attribute6 = getVariableAsBigDecimal(attribute6Value);
-                person.setAttribute6(attribute6);
+                parameter.setAttribute6(attribute6);
             }
             if (!row.get("attribute7").isEmpty()) {
                 String attribute7Value = row.get("attribute7");
                 Boolean attribute7 = getVariableAsBoolean(attribute7Value);
-                person.setAttribute7(attribute7);
+                parameter.setAttribute7(attribute7);
             }
             if (!row.get("attribute8").isEmpty()) {
                 String attribute8Value = row.get("attribute8");
                 Double attribute8 = getVariableAsDouble(attribute8Value);
-                person.setAttribute8(attribute8);
+                parameter.setAttribute8(attribute8);
             }
             if (!row.get("attribute9").isEmpty()) {
                 String attribute9Value = row.get("attribute9");
                 Integer attribute9 = getVariableAsInteger(attribute9Value);
-                person.setAttribute9(attribute9);
+                parameter.setAttribute9(attribute9);
             }
             if (!row.get("attribute10").isEmpty()) {
                 String attribute10Value = row.get("attribute10");
                 Long attribute10 = getVariableAsLong(attribute10Value);
-                person.setAttribute10(attribute10);
+                parameter.setAttribute10(attribute10);
             }
             if (!row.get("attribute11").isEmpty()) {
                 String attribute11Value = row.get("attribute11");
                 BigInteger attribute11 = getVariableAsBigInteger(attribute11Value);
-                person.setAttribute11(attribute11);
+                parameter.setAttribute11(attribute11);
             }
             if (!row.get("attribute12").isEmpty()) {
                 String attribute12Value = row.get("attribute12");
                 XMLGregorianCalendar attribute12 = getVariableAsXMLGregorianCalendar(attribute12Value);
-                person.setAttribute12(attribute12);
+                parameter.setAttribute12(attribute12);
             }
             if (!row.get("attribute13").isEmpty()) {
                 String attribute13Value = row.get("attribute13");
                 Person attribute13 = getVariableValue(attribute13Value);
-                person.setAttribute13(attribute13);
+                parameter.setAttribute13(attribute13);
             }
             if (!row.get("attribute14").isEmpty()) {
                 String attribute14Value = row.get("attribute14");
                 List<Person> attribute14 = getVariableValue(attribute14Value);
-                person.getAttribute14().addAll(attribute14);
+                parameter.getAttribute14().addAll(attribute14);
             }
         }
-        save(personKey, person);
+        save(parameterKey, parameter);
     }
 
     @Given("list string $stringKeys and save to $attribute1Value")
@@ -174,6 +245,13 @@ public class HelloWorldImplServiceSteps {
         }
         String string = helloWorldField.getHelloWorldAsString(arg0);
         save(stringKey, string);
+    }
+
+    @Then("$actualStringKey string is equal to $expectedStringKey")
+    public void thenString(String actualStringKey, String expectedStringKey) {
+        String actualString = getVariableAsString(actualStringKey);
+        String expectedString = getVariableAsString(expectedStringKey);
+        Assert.assertEquals(actualString, expectedString);
     }
 
     private void save(String toPutTypeNameKey, Object toPutTypeName) {
