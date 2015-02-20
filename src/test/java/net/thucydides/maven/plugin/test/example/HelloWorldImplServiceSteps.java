@@ -180,7 +180,7 @@ public class HelloWorldImplServiceSteps {
             if (!row.get("personParentId").isEmpty()) {
                 String personParentIdValue = row.get("personParentId");
                 Integer personParentId = getVariableAsInteger(personParentIdValue);
-                person.setPersonParentId(personParentId);
+                parameter.setPersonParentId(personParentId);
             }
         }
         save(parameterKey, parameter);
