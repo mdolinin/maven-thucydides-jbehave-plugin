@@ -97,6 +97,7 @@ public class SoapStepsGenerator {
                 //get list off all webservice interface method
                 Method[] webServiceMethods = webServiceInterface.getDeclaredMethods();
                 //process all webservice methods
+                Set<Class<?>> repeatedTypes = new HashSet<Class<?>>();
                 for (Method webServiceMethod : webServiceMethods) {
                     //create code model for webservice response
                     Class<?> webServiceResponseClass = webServiceMethod.getReturnType();
@@ -123,7 +124,8 @@ public class SoapStepsGenerator {
                     String stepMethodName = webServiceMethod.getName();
                     JMethod whenMethod = serviceStepsRawClass.method(JMod.PUBLIC, Void.TYPE,
                             getVariableName(When.class) +
-                                    StringUtils.capitalize(stepMethodName));
+                                    StringUtils.capitalize(stepMethodName)
+                    );
 
                     //create jbehave annotation
                     String stepPattern = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, stepMethodName).replaceAll("_", " ");
@@ -193,7 +195,11 @@ public class SoapStepsGenerator {
                         //save response to test session
                         whenMethod.body().add(JExpr.invoke(SAVE).arg(JExpr.ref(webServiceResponseTypeNameKey)).arg(JExpr.ref(webServiceResponseTypeName)));
                         givenStepsGenerator.generateFor(webServiceResponseClass, webServiceResponseTypeName, webServiceResponseTypeNameKey);
-                        thenStepsGenerator.generateFor(webServiceResponseClass, webServiceResponseTypeName, webServiceResponseTypeNameKey, outputDir);
+                        //avoid repeated generation of then steps with the same repeatedTypes
+                        if (!repeatedTypes.contains(ClassUtils.primitiveToWrapper(webServiceResponseClass))) {
+                            thenStepsGenerator.generateFor(webServiceResponseClass, webServiceResponseTypeName, webServiceResponseTypeNameKey);
+                            repeatedTypes.add(ClassUtils.primitiveToWrapper(webServiceResponseClass));
+                        }
                     } else {
                         whenMethod.body().add(callWebservice);
                     }
@@ -337,6 +343,7 @@ public class SoapStepsGenerator {
         //generate java files from model
         codeModel.build(new FileCodeWriter(outputDir));
     }
+
     //TODO join  addDeclaration + addInitializationLocalVariable methods in one
     public static JVar addDeclaration(JCodeModel codeModel, JDefinedClass serviceStepsRawClass, JMethod method, JBlock jBlock, Class<?> parameterClass, JClass rawParameterType, String parameterName, String parameterKeyName) {
         String typeName = rawParameterType.name();
