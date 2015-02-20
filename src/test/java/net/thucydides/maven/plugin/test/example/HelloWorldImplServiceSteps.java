@@ -106,6 +106,11 @@ public class HelloWorldImplServiceSteps {
                 List<Person> attribute14 = getVariableValue(attribute14Value);
                 person.getAttribute14().addAll(attribute14);
             }
+            if (!row.get("personParentId").isEmpty()) {
+                String personParentIdValue = row.get("personParentId");
+                Integer personParentId = getVariableAsInteger(personParentIdValue);
+                person.setPersonParentId(personParentId);
+            }
         }
         save(personKey, person);
     }

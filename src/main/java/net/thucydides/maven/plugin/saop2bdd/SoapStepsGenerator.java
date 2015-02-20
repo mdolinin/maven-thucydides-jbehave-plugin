@@ -514,6 +514,12 @@ public class SoapStepsGenerator {
         return suffix.toString();
     }
 
+    /**
+     * Gets name of parameterType class, makes first char toLowerCase
+     * and add 'Value' suffix if result is java identifier
+     * @param parameterType type class
+     * @return name for variable
+     */
     public static String getVariableName(Class<?> parameterType) {
         String rawVarName = StringUtils.uncapitalize(parameterType.getSimpleName());
         if (!isJavaIdentifier(rawVarName)) {

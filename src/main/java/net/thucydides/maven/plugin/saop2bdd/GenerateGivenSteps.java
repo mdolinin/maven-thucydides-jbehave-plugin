@@ -2,7 +2,6 @@ package net.thucydides.maven.plugin.saop2bdd;
 
 import com.google.common.base.CaseFormat;
 import com.sun.codemodel.*;
-import net.thucydides.core.Thucydides;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -16,16 +15,17 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static net.thucydides.maven.plugin.saop2bdd.SoapStepsGenerator.*;
 import static org.apache.commons.lang3.StringUtils.capitalize;
 import static org.apache.commons.lang3.StringUtils.uncapitalize;
 
 public class GenerateGivenSteps {
+    /**
+     * Reference to root object of code generation tree,
+     * acting like context (contains needed info about generation code)
+     */
     private JCodeModel codeModel;
     private JDefinedClass serviceStepsRawClass;
     private GenerateGivenStepsForList generateGivenStepsForList;
@@ -38,18 +38,15 @@ public class GenerateGivenSteps {
         this.generateGivenStepsForList = generateGivenStepsForList;
     }
 
-    public void generateFor(Class<?> type, String name, String key) {
-        if (isSimple(type)) {
+    public void generateFor(Class<?> parameterTypeClass, String parameterName, String parameterKeyName) {
+        if (isSimple(parameterTypeClass)) {
             return;
         }
         //create model of our web service class
-        JClass rawTypeClass = codeModel.ref(type);
-
-        //create model of Thucydides class
-        JClass rawThucydidesClass = codeModel.ref(Thucydides.class);
+        JClass rawTypeClass = codeModel.ref(parameterTypeClass);
 
         //create given method for type
-        String stepMethodName = type.getSimpleName();
+        String stepMethodName = parameterTypeClass.getSimpleName();
         JMethod givenMethod = serviceStepsRawClass.method(JMod.PUBLIC, Void.TYPE,
                 getVariableName(Given.class) +
                         StringUtils.capitalize(stepMethodName)
@@ -58,14 +55,14 @@ public class GenerateGivenSteps {
         String stepPattern = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, stepMethodName).replaceAll("_", " ");
 
         //initialize type local variable
-        JVar typeLocalVar = givenMethod.body().decl(rawTypeClass, name, JExpr._new(rawTypeClass));
+        JVar typeLocalVar = givenMethod.body().decl(rawTypeClass, parameterName, JExpr._new(rawTypeClass));
 
         //get list off all fields
-        Field[] declaredFields = type.getDeclaredFields();
+        List<Field> declaredFields = getDeclaredAndInheritedFields(parameterTypeClass);
 
-        if (declaredFields.length > PARAMETER_COUNT) {
-            //add response key to method
-            givenMethod.param(String.class, key);
+        if (declaredFields.size() > PARAMETER_COUNT) {
+            //add response key to method for save
+            givenMethod.param(String.class, parameterKeyName);
             //create example table method parameter
             JVar exampleTable = givenMethod.param(ExamplesTable.class, "parameters");
             //if block for checking row size
@@ -74,8 +71,8 @@ public class GenerateGivenSteps {
             checkRowSizeBlock._then()._throw(JExpr._new(exceptionType).arg("Wrong number of parameters."));
             String forEachIterator = "row";
             //create for each for map<string,string>
-            JClass parametarizedMap = codeModel.ref(Map.class).narrow(codeModel.ref(String.class), codeModel.ref(String.class));
-            JForEach forEach = givenMethod.body().forEach(parametarizedMap, forEachIterator, exampleTable.invoke("getRows"));
+            JClass parametrizedMap = codeModel.ref(Map.class).narrow(codeModel.ref(String.class), codeModel.ref(String.class));
+            JForEach forEach = givenMethod.body().forEach(parametrizedMap, forEachIterator, exampleTable.invoke("getRows"));
             //process all setters
             for (Field field : declaredFields) {
                 //get name and type
@@ -101,7 +98,7 @@ public class GenerateGivenSteps {
                 addGetValueFromVariable(codeModel, serviceStepsRawClass, givenMethod, ifBlock._then(), field.getType(), modelFieldClass, fieldName, fieldNameValue);
                 JInvocation callSetter;
                 if (fieldGenericClass == null) {
-                    Method[] methods = type.getMethods();
+                    Method[] methods = parameterTypeClass.getMethods();
                     String goodMethodName = "";
                     for (Method method : methods) {
                         if (method.getName().equalsIgnoreCase("set" + field.getName())) {
@@ -114,7 +111,7 @@ public class GenerateGivenSteps {
                     callSetter = typeLocalVar.invoke("get" + capitalize(trimmedFieldName)).invoke("addAll");
                 }
                 callSetter.arg(JExpr.ref(fieldName));
-                types.add(type);
+                types.add(parameterTypeClass);
                 if (fieldGenericClass == null) {
                     generateFor(fieldClass, fieldNameValue, fieldName);
                 } else {
@@ -128,7 +125,7 @@ public class GenerateGivenSteps {
                 ifBlock._then().add(callSetter);
             }
             //add save to part to annotation
-            stepPattern += " saved to '$" + key + getClassNameLikeString(serviceStepsRawClass.name()) + "' with parameters: $parameters";
+            stepPattern += " saved to '$" + parameterKeyName + getClassNameLikeString(serviceStepsRawClass.name()) + "' with parameters: $parameters";
         } else {
             //process all setters
             for (Field field : declaredFields) {
@@ -159,7 +156,7 @@ public class GenerateGivenSteps {
                 addGetValueFromVariable(codeModel, serviceStepsRawClass, givenMethod, jConditional._then(), fieldClass, modelFieldClass, localVariableParameterName, fieldName);
                 JInvocation callSetter;
                 if (fieldGenericClass == null) {
-                    Method[] methods = type.getMethods();
+                    Method[] methods = parameterTypeClass.getMethods();
                     String goodMethodName = "";
                     for (Method method : methods) {
                         if (method.getName().equalsIgnoreCase("set" + field.getName())) {
@@ -173,7 +170,7 @@ public class GenerateGivenSteps {
                 }
                 callSetter.arg(JExpr.ref(localVariableParameterName));
                 fieldName = addParamWithUniqueName(givenMethod, String.class, fieldName);
-                types.add(type);
+                types.add(parameterTypeClass);
                 if (fieldGenericClass == null) {
                     generateFor(fieldClass, localVariableParameterName, fieldName);
                 } else {
@@ -188,15 +185,26 @@ public class GenerateGivenSteps {
                 jConditional._then().add(callSetter);
             }
             //add save to part to annotation
-            stepPattern += " and save to $" + key + getClassNameLikeString(serviceStepsRawClass.name());
+            stepPattern += " and save to $" + parameterKeyName + getClassNameLikeString(serviceStepsRawClass.name());
             //add response key to method
-            givenMethod.param(String.class, key);
+            givenMethod.param(String.class, parameterKeyName);
         }
         //save response to test session
-        givenMethod.body().add(JExpr.invoke(SAVE).arg(JExpr.ref(key)).arg(JExpr.ref(name)));
+        givenMethod.body().add(JExpr.invoke(SAVE).arg(JExpr.ref(parameterKeyName)).arg(JExpr.ref(parameterName)));
         //add jbehave annotation
         givenMethod.annotate(Given.class).param("value", StringEscapeUtils.escapeJava(stepPattern));
-        types.add(type);
+        types.add(parameterTypeClass);
+    }
+
+    private List<Field> getDeclaredAndInheritedFields(Class<?> parameterTypeClass) {
+        List<Field> declaredAndInheritedFields = new ArrayList<Field>();
+        declaredAndInheritedFields.addAll(Arrays.asList(parameterTypeClass.getDeclaredFields()));
+        Class<?> superClass = parameterTypeClass.getSuperclass();
+        while (superClass != Object.class) {
+            declaredAndInheritedFields.addAll(Arrays.asList(superClass.getDeclaredFields()));
+            superClass = superClass.getSuperclass();
+        }
+        return declaredAndInheritedFields;
     }
 
     private boolean isSimple(Class<?> type) {
