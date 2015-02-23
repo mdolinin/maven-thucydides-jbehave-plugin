@@ -5,12 +5,16 @@ import net.thucydides.core.util.EnvironmentVariables;
 import net.thucydides.core.util.Inflector;
 import net.thucydides.jbehave.ThucydidesJUnitStories;
 import org.codehaus.plexus.util.StringUtils;
+import org.jbehave.core.steps.MarkUnmatchedStepsAsPending;
+import org.jbehave.core.steps.StepCollector;
+import org.jbehave.core.steps.StepFinder;
 
 import java.util.List;
 
 import static org.apache.commons.lang3.StringUtils.join;
-
+//This is class For quick test
 public class CustomJUnitStory extends ThucydidesJUnitStories {
+    static StepCollector stepCollector = new MarkUnmatchedStepsAsPending(new StepFinder(new StepFinder.ByLevenshteinDistance()));
     public CustomJUnitStory() {
         findStoriesCalled(storynamesDerivedFromClassName());
     }
@@ -69,7 +73,7 @@ public class CustomJUnitStory extends ThucydidesJUnitStories {
     }
 
     private String simpleClassName() {
-        return this.getClass().getSimpleName().substring(0, this.getClass().getSimpleName().lastIndexOf("IT") - 1);
+        return this.getClass().getSimpleName().substring(0, this.getClass().getSimpleName().lastIndexOf("IT"));
     }
 
     private String underscoredTestName() {
