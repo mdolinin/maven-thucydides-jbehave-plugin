@@ -15,7 +15,7 @@ public class Person {
     private String attribute2;
     private List<Address> address;
     private Address attribute4;
-    private String attribute5;
+    private AccountingMethod attribute5;
     private BigDecimal attribute6;
     private Boolean attribute7;
     private Double attribute8;
@@ -23,6 +23,24 @@ public class Person {
     private Long attribute10;
     private BigInteger attribute11;
     private XMLGregorianCalendar attribute12;
+    private Person attribute13;
+    private List<Person> attribute14;
+
+    public List<Person> getAttribute14() {
+        return attribute14;
+    }
+
+    public void setAttribute14(List<Person> attribute14) {
+        this.attribute14 = attribute14;
+    }
+
+    public Person getAttribute13() {
+        return attribute13;
+    }
+
+    public void setAttribute13(Person attribute13) {
+        this.attribute13 = attribute13;
+    }
 
     public List<String> getAttribute1() {
         return attribute1;
@@ -30,14 +48,6 @@ public class Person {
 
     public void setAttribute1(List<String> attribute1) {
         this.attribute1 = attribute1;
-    }
-
-    public XMLGregorianCalendar getAttribute12() {
-        return attribute12;
-    }
-
-    public void setAttribute12(XMLGregorianCalendar attribute12) {
-        this.attribute12 = attribute12;
     }
 
     public String getAttribute2() {
@@ -64,11 +74,11 @@ public class Person {
         this.attribute4 = attribute4;
     }
 
-    public String getAttribute5() {
+    public AccountingMethod getAttribute5() {
         return attribute5;
     }
 
-    public void setAttribute5(String attribute5) {
+    public void setAttribute5(AccountingMethod attribute5) {
         this.attribute5 = attribute5;
     }
 
@@ -118,5 +128,13 @@ public class Person {
 
     public void setAttribute11(BigInteger attribute11) {
         this.attribute11 = attribute11;
+    }
+
+    public XMLGregorianCalendar getAttribute12() {
+        return attribute12;
+    }
+
+    public void setAttribute12(XMLGregorianCalendar attribute12) {
+        this.attribute12 = attribute12;
     }
 }
