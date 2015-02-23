@@ -56,7 +56,7 @@ public class WhenGenerateScenarioStepsForEachStoryFileTest {
         for(String fileName : generatedFileNames) {
             File actualFile = new File(destinationDirectory, fileName);
             File expectedFile = new File(expectedFilesDirectory, fileName);
-            assertEquals(FileUtils.readLines(actualFile), FileUtils.readLines(expectedFile));
+         assertEquals(FileUtils.readLines(actualFile), FileUtils.readLines(expectedFile));
         }
     }
 

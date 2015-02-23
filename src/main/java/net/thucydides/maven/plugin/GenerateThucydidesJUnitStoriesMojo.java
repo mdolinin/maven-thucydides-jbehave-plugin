@@ -109,10 +109,12 @@ public class GenerateThucydidesJUnitStoriesMojo extends AbstractMojo {
     private void moveResource() {
         File utils = createUtils();
         File customJUnitStoryFile = getFileFromResourcesByFilePath("/CustomJUnitStory.java");
+        File deepEqualsWithExclusionFile = getFileFromResourcesByFilePath("/DeepEqualsWithExclusion.java");
         try {
             changePackageName(customJUnitStoryFile);
             if (!new File(utils.getAbsolutePath() + "/" + customJUnitStoryFile.getName()).exists())
                 FileUtils.copyFile(customJUnitStoryFile, new File(utils.getAbsolutePath() + "/" + customJUnitStoryFile.getName()));
+                FileUtils.copyFile(deepEqualsWithExclusionFile, new File(utils.getAbsolutePath() + "/" + deepEqualsWithExclusionFile.getName()));
         } catch (IOException e) {
             getLog().error("Error while move resource " + e.getMessage());
         }

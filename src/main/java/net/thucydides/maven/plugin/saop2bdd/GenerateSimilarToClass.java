@@ -143,7 +143,9 @@ public class GenerateSimilarToClass {
         matchesSafelyMethod.param(type, ACTUAL_RESPONSE);
         matchesSafelyMethod.annotate(Override.class);
         JBlock blockMatchesSafely = matchesSafelyMethod.body();
-        mainBody(type, ACTUAL_RESPONSE, EXPECTED_RESPONSE, blockMatchesSafely, null);
+        JClass refEquals = codeModel.ref("com.engagepoint.acceptancetest.utils.DeepEqualsWithExclusion");
+        blockMatchesSafely.decl(refEquals, "equal", JExpr._new(refEquals).arg(JExpr.ref(LIST_TO_EXCLUDE)).arg(JExpr.ref(EXPECTED_DATA)).arg(JExpr.ref(ACTUAL_DATA)));
+        blockMatchesSafely.block().directStatement("equal.deepEqual(null, expectedResponse, actualResponse);");
         blockMatchesSafely._return(JExpr.ref(EXPECTED_DATA).invoke("isEmpty").cand(JExpr.ref(ACTUAL_DATA).invoke("isEmpty")));
     }
 
