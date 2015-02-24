@@ -51,11 +51,11 @@ public class CustomJUnitStory extends ThucydidesJUnitStories {
         super.run();
     }
 
-    @Override
-    public Configuration configuration() {
-        Configuration configuration = super.configuration().useStepCollector(stepCollector);
-        return configuration;
-    }
+//    @Override
+//    public Configuration configuration() {
+//        Configuration configuration = super.configuration().useStepCollector(stepCollector);
+//        return configuration;
+//    }
 
     private List<String> getStoryNameCandidatesFrom(String... storyNameCandidates) {
         List<String> storyNames = Lists.newArrayList();
