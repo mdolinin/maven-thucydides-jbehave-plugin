@@ -1,15 +1,29 @@
 package com.engagepoint.acceptancetest.utils;
+
 import com.google.common.collect.Lists;
 import net.thucydides.core.util.EnvironmentVariables;
 import net.thucydides.core.util.Inflector;
+import net.thucydides.jbehave.ThucydidesJBehave;
 import net.thucydides.jbehave.ThucydidesJUnitStories;
 import org.codehaus.plexus.util.StringUtils;
+import org.jbehave.core.Embeddable;
+import org.jbehave.core.configuration.Configuration;
+import org.jbehave.core.embedder.Embedder;
+import org.jbehave.core.reporters.Format;
+import org.jbehave.core.steps.MarkUnmatchedStepsAsPending;
+import org.jbehave.core.steps.StepCollector;
+import org.jbehave.core.steps.StepFinder;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static org.apache.commons.lang3.StringUtils.join;
+import static org.jbehave.core.reporters.Format.*;
+import static org.jbehave.core.reporters.Format.CONSOLE;
 
 public class CustomJUnitStory extends ThucydidesJUnitStories {
+    static StepCollector stepCollector = new MarkUnmatchedStepsAsPending(new StepFinder(new StepFinder.ByLevenshteinDistance()));
+
     public CustomJUnitStory() {
         findStoriesCalled(storynamesDerivedFromClassName());
     }
@@ -24,11 +38,6 @@ public class CustomJUnitStory extends ThucydidesJUnitStories {
         findStoriesCalled(storynamesDerivedFromClassName());
     }
 
-    @Override
-    public void run() throws Throwable {
-        super.run();
-    }
-
     protected String storynamesDerivedFromClassName() {
 
         List<String> storyNames = getStoryNameCandidatesFrom(startingWithUpperCase(simpleClassName()),
@@ -36,6 +45,17 @@ public class CustomJUnitStory extends ThucydidesJUnitStories {
                 underscoredTestName());
         return join(storyNames, ";");
     }
+
+    @Override
+    public void run() throws Throwable {
+        super.run();
+    }
+
+//    @Override
+//    public Configuration configuration() {
+//        Configuration configuration = super.configuration().useStepCollector(stepCollector);
+//        return configuration;
+//    }
 
     private List<String> getStoryNameCandidatesFrom(String... storyNameCandidates) {
         List<String> storyNames = Lists.newArrayList();
