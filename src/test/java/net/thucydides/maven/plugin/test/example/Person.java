@@ -10,7 +10,7 @@ import java.util.List;
 
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-public class Person {
+public class Person extends PersonParent {
     private List<String> attribute1;
     private String attribute2;
     private List<Address> address;
