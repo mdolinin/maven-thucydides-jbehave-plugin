@@ -198,10 +198,12 @@ public class GenerateGivenSteps {
 
     private List<Field> getDeclaredAndInheritedFields(Class<?> parameterTypeClass) {
         List<Field> declaredAndInheritedFields = new ArrayList<Field>();
-        declaredAndInheritedFields.addAll(Arrays.asList(parameterTypeClass.getDeclaredFields()));
+        Field[] fields = parameterTypeClass.getDeclaredFields();
+        declaredAndInheritedFields.addAll(Arrays.asList(fields));
         Class<?> superClass = parameterTypeClass.getSuperclass();
-        while (superClass != Object.class) {
-            declaredAndInheritedFields.addAll(Arrays.asList(superClass.getDeclaredFields()));
+        while (superClass != null) {
+            Field[] fieldsOfSuperClass = superClass.getDeclaredFields();
+            declaredAndInheritedFields.addAll(Arrays.asList(fieldsOfSuperClass));
             superClass = superClass.getSuperclass();
         }
         return declaredAndInheritedFields;
