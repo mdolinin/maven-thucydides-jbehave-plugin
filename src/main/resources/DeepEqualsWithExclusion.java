@@ -75,6 +75,9 @@ public class DeepEqualsWithExclusion {
         if (isBigIntegerType(type)) {
             compareBigInteger(currentMethod, expectedResponse, actualResponse);
         }
+        if (isDouble(type)) {
+            compareDouble(currentMethod, expectedResponse, actualResponse);
+        }
     }
 
     private <T> void comparePrimitive(Method currentMethod, T expectedResponse, T actualResponse) {
@@ -123,6 +126,26 @@ public class DeepEqualsWithExclusion {
             try {
                 BigInteger execActual = (BigInteger) currentMethod.invoke(actualResponse);
                 BigInteger execExpected = (BigInteger) currentMethod.invoke(expectedResponse);
+                if (execActual != null) {
+                    if (execExpected != null) {
+                        if (execActual.compareTo(execExpected) != 0) {
+                            expectedData.put((getFieldName(currentMethod) + " in BigInteger row " + countArraySymbol), String.valueOf(execExpected));
+                            actualData.put((getFieldName(currentMethod) + " in BigInteger row " + countArraySymbol), String.valueOf(execActual));
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("Exception while running comparePrimitive, " + e.getMessage());
+            }
+        }
+    }
+
+    private <T> void compareDouble(Method currentMethod, T expectedResponse, T actualResponse) {
+        fieldName = makeFirstLetterToLowerCase(currentMethod.getName().substring(3));
+        if (!listToExclude.contains(fieldName)) {
+            try {
+                Double execActual = (Double) currentMethod.invoke(actualResponse);
+                Double execExpected = (Double) currentMethod.invoke(expectedResponse);
                 if (execActual != null) {
                     if (execExpected != null) {
                         if (execActual.compareTo(execExpected) != 0) {
@@ -294,15 +317,16 @@ public class DeepEqualsWithExclusion {
                 || type.isEnum()
                 || type.equals(XMLGregorianCalendar.class)
                 || type.equals(BigInteger.class)
-                || type.equals(BigDecimal.class);
+                || type.equals(BigDecimal.class)
+                || type.equals(Double.class);
     }
 
     private boolean isEnumType(Class<?> returnType) {
         return returnType.isEnum();
     }
 
-    private boolean isXMLGregorianCalendarType(Class<?> type) {
-        return type.equals(XMLGregorianCalendar.class);
+    private boolean isXMLGregorianCalendarType(Class<?> returnType) {
+        return returnType.equals(XMLGregorianCalendar.class);
     }
 
     private boolean isPrimitiveType(Class<?> returnType) {
@@ -321,8 +345,12 @@ public class DeepEqualsWithExclusion {
         return returnType == BigInteger.class;
     }
 
-    private boolean isVoidType(Class<?> type) {
-        return type.getName().equals(void.class.getName());
+    private boolean isVoidType(Class<?> returnType) {
+        return returnType.getName().equals(void.class.getName());
+    }
+
+    private boolean isDouble(Class<?> returnType) {
+        return returnType == Double.class;
     }
 
     private boolean isGetter(Method method) {
