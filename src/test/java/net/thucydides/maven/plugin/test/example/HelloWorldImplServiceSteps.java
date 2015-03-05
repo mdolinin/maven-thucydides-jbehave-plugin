@@ -331,7 +331,6 @@ public class HelloWorldImplServiceSteps {
         }
     }
 
-    //fix encoding
     private XMLGregorianCalendar getVariableAsXMLGregorianCalendar(String key)
         throws DatatypeConfigurationException
     {
