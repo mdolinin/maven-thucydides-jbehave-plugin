@@ -207,24 +207,24 @@ class StepFinder1 extends StepFinder {
     public static class ByPriorityField implements PrioritisingStrategy {
 
         public List<StepCandidate> prioritise(String stepAsText, List<StepCandidate> candidates) {
-            if(copyCandidates != null) return copyCandidates;
+            if (copyCandidates != null) return copyCandidates;
             Collections.sort(candidates, new Comparator<StepCandidate>() {
                 public int compare(StepCandidate o1, StepCandidate o2) {
                     int paramsO1 = o1.getMethod().getParameterTypes().length;
                     int paramsO2 = o2.getMethod().getParameterTypes().length;
-                    return Integer.compare(paramsO2, paramsO1);
+                    return compareInt(paramsO2, paramsO1);
                 }
             });
             copyCandidates = candidates;
             return copyCandidates;
         }
-
     }
 
-    /**
-     * Strategy to priorise candidate steps by <a
-     * href="http://en.wikipedia.org/wiki/Levenshtein_distance">Levenshtein Distance</a>
-     */
+    public static int compareInt(int x, int y) {
+        return (x < y) ? -1 : ((x == y) ? 0 : 1);
+    }
+
+
     public static class ByLevenshteinDistance implements PrioritisingStrategy {
 
         private LevenshteinDistance ld = new LevenshteinDistance();

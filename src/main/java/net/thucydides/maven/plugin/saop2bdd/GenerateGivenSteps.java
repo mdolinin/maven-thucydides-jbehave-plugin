@@ -8,7 +8,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.jbehave.core.annotations.Given;
 import org.jbehave.core.model.ExamplesTable;
 
-import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.datatype.DatatypeConfigurationException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
@@ -22,6 +22,7 @@ import static org.apache.commons.lang3.StringUtils.capitalize;
 import static org.apache.commons.lang3.StringUtils.uncapitalize;
 
 public class GenerateGivenSteps {
+    public static final String XML_GREGORIAN_CALENDAR = "XMLGregorianCalendar";
     /**
      * Reference to root object of code generation tree,
      * acting like context (contains needed info about generation code)
@@ -31,6 +32,7 @@ public class GenerateGivenSteps {
     private GenerateGivenStepsForList generateGivenStepsForList;
     private Set<Class<?>> types = new HashSet<Class<?>>();
     private static final int PARAMETER_COUNT = 10;
+    private JClass rawTypeClassXML;
 
     public GenerateGivenSteps(JCodeModel codeModel, JDefinedClass serviceStepsRawClass, GenerateGivenStepsForList generateGivenStepsForList) {
         this.codeModel = codeModel;
@@ -55,7 +57,13 @@ public class GenerateGivenSteps {
         String stepPattern = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, stepMethodName).replaceAll("_", " ");
 
         //initialize type local variable
-        JVar typeLocalVar = givenMethod.body().decl(rawTypeClass, parameterName, JExpr._new(rawTypeClass));
+        JVar typeLocalVar = null;
+        if (rawTypeClass.name().equals(XML_GREGORIAN_CALENDAR)) {
+            givenMethod._throws(DatatypeConfigurationException.class);
+            typeLocalVar = givenMethod.body().decl(rawTypeClass, parameterName, JExpr.direct("DatatypeFactory.newInstance().newXMLGregorianCalendar()"));
+        } else {
+            typeLocalVar = givenMethod.body().decl(rawTypeClass, parameterName, JExpr._new(rawTypeClass));
+        }
 
         //get list off all fields
         List<Field> declaredFields = getDeclaredAndInheritedFields(parameterTypeClass);
@@ -215,7 +223,6 @@ public class GenerateGivenSteps {
                 || type.equals(String.class)
                 || type.isEnum()
                 || type.isInterface()
-                || type.equals(XMLGregorianCalendar.class)
                 || type.equals(BigInteger.class)
                 || type.equals(BigDecimal.class);
     }
