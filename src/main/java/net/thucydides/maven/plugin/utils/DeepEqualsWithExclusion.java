@@ -1,4 +1,4 @@
-package com.engagepoint.acceptancetest.utils;
+package net.thucydides.maven.plugin.utils;
 
 import org.apache.commons.lang3.ClassUtils;
 
@@ -16,7 +16,7 @@ import java.util.Map;
 public class DeepEqualsWithExclusion {
 
     private String[] counterSymbol = new String[]{"o", "i", "j", "k", "m", "n"};
-    private int countArraySymbol = 0;
+    private int countArraySymbol;
     private String fieldName = null;
     private List<String> listToExclude;
     private Map<String, String> expectedData;
@@ -30,7 +30,7 @@ public class DeepEqualsWithExclusion {
         this.actualData = actualData;
     }
 
-    public <T> void deepEqual(Method currentMethod, T expectedResponse, T actualResponse) {
+    public <T> void deepEquals(Method currentMethod, T expectedResponse, T actualResponse) {
         Class<?> classType = null;
         try {
             classType = initCurrentClassType(currentMethod, expectedResponse);
@@ -75,13 +75,10 @@ public class DeepEqualsWithExclusion {
         if (isBigIntegerType(type)) {
             compareBigInteger(currentMethod, expectedResponse, actualResponse);
         }
-        if (isDouble(type)) {
-            compareDouble(currentMethod, expectedResponse, actualResponse);
-        }
     }
 
     private <T> void comparePrimitive(Method currentMethod, T expectedResponse, T actualResponse) {
-        fieldName = makeFirstLetterToLowerCase(currentMethod.getName().substring(3));
+        fieldName = makeFirstLetterLowerCase(currentMethod.getName().substring(3));
         if (!listToExclude.contains(fieldName)) {
             try {
                 Object execActual = currentMethod.invoke(actualResponse);
@@ -89,19 +86,20 @@ public class DeepEqualsWithExclusion {
                 if (execActual != null) {
                     if (execExpected != null) {
                         if (!execActual.equals(execExpected)) {
-                            expectedData.put(getFieldName(currentMethod), String.valueOf(execExpected));
-                            actualData.put(getFieldName(currentMethod), String.valueOf(execActual));
+                            expectedData.put(createMsgForEqualsCondition(currentMethod.getName()), String.valueOf(execExpected));
+                            actualData.put(createMsgForEqualsCondition(currentMethod.getName()), String.valueOf(execActual));
                         }
                     }
                 }
             } catch (Exception e) {
                 System.err.println("Exception while running comparePrimitive, " + e.getMessage());
+                e.printStackTrace();
             }
         }
     }
 
     private <T> void compareBigDecimal(Method currentMethod, T expectedResponse, T actualResponse) {
-        fieldName = makeFirstLetterToLowerCase(currentMethod.getName().substring(3));
+        fieldName = makeFirstLetterLowerCase(currentMethod.getName().substring(3));
         if (!listToExclude.contains(fieldName)) {
             try {
                 BigDecimal execActual = (BigDecimal) currentMethod.invoke(actualResponse);
@@ -109,19 +107,22 @@ public class DeepEqualsWithExclusion {
                 if (execActual != null) {
                     if (execExpected != null) {
                         if (execActual.compareTo(execExpected) != 0) {
-                            expectedData.put((getFieldName(currentMethod) + " in BigDecimal row " + countArraySymbol), String.valueOf(execExpected));
-                            actualData.put((getFieldName(currentMethod) + " in BigDecimal row " + countArraySymbol), String.valueOf(execActual));
+                            System.err.println("currentMethod.getName()" + currentMethod.getName() + " String.valueOf(execExpected)" + String.valueOf(execExpected));
+                            System.err.println("currentMethod.getName()" + currentMethod.getName() + " String.valueOf(execExpected)" + String.valueOf(execActual));
+                            expectedData.put((currentMethod.getName() + " in row " + countArraySymbol), String.valueOf(execExpected));
+                            actualData.put((currentMethod.getName() + " in row " + countArraySymbol), String.valueOf(execActual));
                         }
                     }
                 }
             } catch (Exception e) {
                 System.err.println("Exception while running comparePrimitive, " + e.getMessage());
+                e.printStackTrace();
             }
         }
     }
 
     private <T> void compareBigInteger(Method currentMethod, T expectedResponse, T actualResponse) {
-        fieldName = makeFirstLetterToLowerCase(currentMethod.getName().substring(3));
+        fieldName = makeFirstLetterLowerCase(currentMethod.getName().substring(3));
         if (!listToExclude.contains(fieldName)) {
             try {
                 BigInteger execActual = (BigInteger) currentMethod.invoke(actualResponse);
@@ -129,46 +130,27 @@ public class DeepEqualsWithExclusion {
                 if (execActual != null) {
                     if (execExpected != null) {
                         if (execActual.compareTo(execExpected) != 0) {
-                            expectedData.put((getFieldName(currentMethod) + " in BigInteger row " + countArraySymbol), String.valueOf(execExpected));
-                            actualData.put((getFieldName(currentMethod) + " in BigInteger row " + countArraySymbol), String.valueOf(execActual));
+                            expectedData.put((currentMethod.getName() + " in row " + countArraySymbol), String.valueOf(execExpected));
+                            actualData.put((currentMethod.getName() + " in row " + countArraySymbol), String.valueOf(execActual));
                         }
                     }
                 }
             } catch (Exception e) {
                 System.err.println("Exception while running comparePrimitive, " + e.getMessage());
-            }
-        }
-    }
-
-    private <T> void compareDouble(Method currentMethod, T expectedResponse, T actualResponse) {
-        fieldName = makeFirstLetterToLowerCase(currentMethod.getName().substring(3));
-        if (!listToExclude.contains(fieldName)) {
-            try {
-                Double execActual = (Double) currentMethod.invoke(actualResponse);
-                Double execExpected = (Double) currentMethod.invoke(expectedResponse);
-                if (execActual != null) {
-                    if (execExpected != null) {
-                        if (execActual.compareTo(execExpected) != 0) {
-                            expectedData.put((getFieldName(currentMethod) + " in BigInteger row " + countArraySymbol), String.valueOf(execExpected));
-                            actualData.put((getFieldName(currentMethod) + " in BigInteger row " + countArraySymbol), String.valueOf(execActual));
-                        }
-                    }
-                }
-            } catch (Exception e) {
-                System.err.println("Exception while running comparePrimitive, " + e.getMessage());
+                e.printStackTrace();
             }
         }
     }
 
     private <T> void compareEnum(Method currentMethod, T expectedResponse, T actualResponse) {
-        fieldName = makeFirstLetterToLowerCase(currentMethod.getName().substring(3));
+        fieldName = makeFirstLetterLowerCase(currentMethod.getName().substring(3));
         if (!listToExclude.contains(fieldName)) {
             try {
                 if (currentMethod.invoke(actualResponse) != null) {
                     if (currentMethod.invoke(expectedResponse) != null) {
                         if (!currentMethod.invoke(actualResponse).equals(currentMethod.invoke(expectedResponse))) {
-                            expectedData.put((getFieldName(currentMethod) + " in Enum row " + countArraySymbol), currentMethod.invoke(expectedResponse).toString());
-                            actualData.put((getFieldName(currentMethod) + " in Enum row " + countArraySymbol), currentMethod.invoke(actualResponse).toString());
+                            expectedData.put((currentMethod.getName() + " in row " + countArraySymbol), currentMethod.invoke(expectedResponse).toString());
+                            actualData.put((currentMethod.getName() + " in row " + countArraySymbol), currentMethod.invoke(actualResponse).toString());
                         }
                     }
                 }
@@ -179,16 +161,19 @@ public class DeepEqualsWithExclusion {
     }
 
     private <T> void compareXMLGregorianCalendar(Method currentMethod, T expectedResponse, T actualResponse) {
-        fieldName = makeFirstLetterToLowerCase(currentMethod.getName().substring(3));
+        fieldName = makeFirstLetterLowerCase(currentMethod.getName().substring(3));
         if (!listToExclude.contains(fieldName)) {
             try {
                 XMLGregorianCalendar execActual = (XMLGregorianCalendar) currentMethod.invoke(actualResponse);
                 XMLGregorianCalendar execExpected = (XMLGregorianCalendar) currentMethod.invoke(expectedResponse);
                 if (execActual != null && execExpected != null) {
                     if (!execActual.equals(execExpected)) {
-                        expectedData.put((getFieldName(currentMethod) + " in XML row " + countArraySymbol), String.valueOf(execExpected));
-                        actualData.put((getFieldName(currentMethod) + " in XML row " + countArraySymbol), String.valueOf(execActual));
+                        expectedData.put((currentMethod.getName() + " in row " + countArraySymbol), String.valueOf(execExpected));
+                        actualData.put((currentMethod.getName() + " in row " + countArraySymbol), String.valueOf(execActual));
                     }
+                } else {
+                    expectedData.put((currentMethod.getName() + " in row " + countArraySymbol), String.valueOf(execExpected));
+                    actualData.put((currentMethod.getName() + " in row " + countArraySymbol), String.valueOf(execActual));
                 }
             } catch (Exception e) {
                 System.err.println("Exception while running compareXMLGregorianCalendar, " + e.getMessage());
@@ -197,8 +182,7 @@ public class DeepEqualsWithExclusion {
     }
 
     private <T> void checkListType(Method currentMethod, T expectedResponse, T actualResponse) {
-
-        fieldName = makeFirstLetterToLowerCase(currentMethod.getName().substring(3));
+        fieldName = makeFirstLetterLowerCase(currentMethod.getName().substring(3));
         if (!listToExclude.contains(fieldName)) {
             try {
                 List actList = (List) currentMethod.invoke(actualResponse);
@@ -208,30 +192,29 @@ public class DeepEqualsWithExclusion {
                     return;
                 }
                 if (actList.size() != expList.size()) {
-                    expectedData.put(getFieldName(currentMethod) + " size ", String.valueOf(expList.size()));
-                    actualData.put(getFieldName(currentMethod) + " size ", String.valueOf(actList.size()));
+                    expectedData.put(createMsgForEqualsCondition(currentMethod.getName() + " size "), String.valueOf(expList.size()));
+                    actualData.put(createMsgForEqualsCondition(currentMethod.getName() + " size "), String.valueOf(actList.size()));
                     return;
                 }
-
                 for (int i = 0; i < actList.size(); i++) {
-
+                    countArraySymbol++;
                     classNameGenericReturnType = getClassGenericReturnType(currentMethod);
                     if (isSimpleType(classNameGenericReturnType)) {
-
                         if (!actList.get(i).equals(expList.get(i))) {
-                            String explain = " in List row ";
-                            expectedData.put((getFieldName(currentMethod) + explain + countArraySymbol) + " ", String.valueOf(expList.get(i)));
-                            actualData.put((getFieldName(currentMethod) + explain + countArraySymbol) + " ", String.valueOf(actList.get(i)));
+                            String explain = " in row ";
+                            expectedData.put((explain + countArraySymbol) + " ", String.valueOf(expList.get(i)));
+                            actualData.put((explain + countArraySymbol) + " ", String.valueOf(actList.get(i)));
                         }
                     } else {
                         Object expected = expList.get(i);
                         Object actual = actList.get(i);
-                        deepEqual(null, expected, actual);
-                        countArraySymbol++;
+                        deepEquals(null, expected, actual);
                     }
                 }
+                countArraySymbol = 0;
             } catch (Exception ex) {
                 System.err.println("Exception while running checkListType " + ex.getMessage());
+                ex.printStackTrace();
             }
         }
     }
@@ -240,27 +223,24 @@ public class DeepEqualsWithExclusion {
         Method[] methods = expectedResponse.getClass().getMethods();
         for (Method currentMethod : methods) {
             if (isGetter(currentMethod) || isBoolean(currentMethod)) {
-                fieldName = makeFirstLetterToLowerCase(currentMethod.getName().substring(3));
+                fieldName = makeFirstLetterLowerCase(currentMethod.getName().substring(3));
                 if (!listToExclude.contains(fieldName)) {
                     Class<?> methodReturnType = currentMethod.getReturnType();
                     if (isSimpleType(methodReturnType) || filterByList(methodReturnType)) {
-                        deepEqual(currentMethod, expectedResponse, actualResponse);
+                        deepEquals(currentMethod, expectedResponse, actualResponse);
                     }
                     if (filterByComplex(methodReturnType)) {
+                        System.err.println("filterByComplex(methodReturnType)");
                         if (isGetter(currentMethod) || isBoolean(currentMethod)) {
                             Object expectedInvokeObject = currentMethod.invoke(expectedResponse);
                             Object actualInvokeObject = currentMethod.invoke(actualResponse);
-                            deepEqual(null, expectedInvokeObject, actualInvokeObject);
+                            deepEquals(null, expectedInvokeObject, actualInvokeObject);
                         }
                     }
                 }
             }
         }
     }
-
-     private String getFieldName(Method method){
-         return makeFirstLetterToLowerCase(method.getName().substring(3));
-     }
 
     private String createMsgForEqualsCondition(String name) {
         String exp = "";
@@ -277,6 +257,7 @@ public class DeepEqualsWithExclusion {
         if (countArraySymbol == 3) {
             exp = name + " in row " + counterSymbol[1] + " " + counterSymbol[2] + " " + counterSymbol[3];
         }
+        System.err.println("createMsgForEqualsCondition msg = " + exp);
         return exp;
     }
 
@@ -289,7 +270,7 @@ public class DeepEqualsWithExclusion {
         return fieldGenericClass;
     }
 
-    private String makeFirstLetterToLowerCase(String letter) {
+    private String makeFirstLetterLowerCase(String letter) {
         char c[] = letter.toCharArray();
         c[0] = Character.toLowerCase(c[0]);
         return new String(c);
@@ -317,19 +298,19 @@ public class DeepEqualsWithExclusion {
                 || type.isEnum()
                 || type.equals(XMLGregorianCalendar.class)
                 || type.equals(BigInteger.class)
-                || type.equals(BigDecimal.class)
-                || type.equals(Double.class);
+                || type.equals(BigDecimal.class);
     }
 
     private boolean isEnumType(Class<?> returnType) {
         return returnType.isEnum();
     }
 
-    private boolean isXMLGregorianCalendarType(Class<?> returnType) {
-        return returnType.equals(XMLGregorianCalendar.class);
+    private boolean isXMLGregorianCalendarType(Class<?> type) {
+        return type.equals(XMLGregorianCalendar.class);
     }
 
     private boolean isPrimitiveType(Class<?> returnType) {
+        System.err.println("isPrimitiveType");
         return returnType.isPrimitive();
     }
 
@@ -338,6 +319,7 @@ public class DeepEqualsWithExclusion {
     }
 
     private boolean isBigDecimalType(Class<?> returnType) {
+        System.err.println("isBigDecimalType");
         return returnType == BigDecimal.class;
     }
 
@@ -345,12 +327,8 @@ public class DeepEqualsWithExclusion {
         return returnType == BigInteger.class;
     }
 
-    private boolean isVoidType(Class<?> returnType) {
-        return returnType.getName().equals(void.class.getName());
-    }
-
-    private boolean isDouble(Class<?> returnType) {
-        return returnType == Double.class;
+    private boolean isVoidType(Class<?> type) {
+        return type.getName().equals(void.class.getName());
     }
 
     private boolean isGetter(Method method) {

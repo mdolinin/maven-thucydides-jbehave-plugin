@@ -52,10 +52,10 @@ public class WhenGenerateSoapBddStepsTest {
         File expectedFile = new File(expectedPathToFile);
         List<String> actualFileContent = FileUtils.readLines(actualFile);
         List<String> expectedFileContent = FileUtils.readLines(expectedFile);
-        assertEquals("Number of lines in files is different.", expectedFileContent.size(), actualFileContent.size());
+        assertEquals("Number of lines in files is different", expectedFileContent.size(), actualFileContent.size());
         List<String> actualFileCodeBlocks = splitFileByEmptyLines(actualFileContent);
         List<String> expectedFileCodeBlocks = splitFileByEmptyLines(expectedFileContent);
-        assertTrue("Files are not equivalent.", CollectionUtils.isEqualCollection(expectedFileCodeBlocks, actualFileCodeBlocks));
+        assertTrue("Files are not equivalent", CollectionUtils.isEqualCollection(expectedFileCodeBlocks, actualFileCodeBlocks));
     }
 
     private List<String> splitFileByEmptyLines(List<String> fileLines) {
