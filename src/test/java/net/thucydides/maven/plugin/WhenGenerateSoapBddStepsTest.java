@@ -1,6 +1,5 @@
 package net.thucydides.maven.plugin;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -14,6 +13,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -53,16 +54,19 @@ public class WhenGenerateSoapBddStepsTest {
         List<String> actualFileContent = FileUtils.readLines(actualFile);
         List<String> expectedFileContent = FileUtils.readLines(expectedFile);
         assertEquals("Number of lines in files is different", expectedFileContent.size(), actualFileContent.size());
-        List<String> actualFileCodeBlocks = splitFileByEmptyLines(actualFileContent);
-        List<String> expectedFileCodeBlocks = splitFileByEmptyLines(expectedFileContent);
-        assertTrue("Files are not equivalent", CollectionUtils.isEqualCollection(expectedFileCodeBlocks, actualFileCodeBlocks));
+        SortedSet<String> actualFileCodeBlocks = splitFileByEmptyLines(actualFileContent);
+        SortedSet<String> expectedFileCodeBlocks = splitFileByEmptyLines(expectedFileContent);
+        assertTrue("Files are not equivalent", actualFileCodeBlocks.equals(expectedFileCodeBlocks));
+//        assertTrue("Files are not equivalent", CollectionUtils.isEqualCollection(expectedFileCodeBlocks, actualFileCodeBlocks));
     }
 
-    private List<String> splitFileByEmptyLines(List<String> fileLines) {
+    private SortedSet<String> splitFileByEmptyLines(List<String> fileLines) {
         List<String> result = new ArrayList<String>();
+        SortedSet<String> set = new TreeSet<String>();
         StringBuilder stringBuilder = new StringBuilder();
         for (String line : fileLines) {
             if (line.isEmpty()) {
+                set.add(stringBuilder.toString());
                 result.add(stringBuilder.toString());
                 //clean string builder
                 stringBuilder.setLength(0);
@@ -72,6 +76,7 @@ public class WhenGenerateSoapBddStepsTest {
         }
         //add last line
         result.add(stringBuilder.toString());
-        return result;
+        set.add(stringBuilder.toString());
+        return set;
     }
 }
