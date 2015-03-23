@@ -8,6 +8,7 @@ Maven plugin for generate junit story stubs and scenario-steps from jbehave stor
     mvn clean install
 
 #### [Compiled jar and pom](https://github.com/mdolinin/maven-thucydides-jbehave-plugin/releases)
+[ ![Download](https://api.bintray.com/packages/mdolinin/maven/maven-thucydides-jbehave-plugin/images/download.svg) ](https://bintray.com/mdolinin/maven/maven-thucydides-jbehave-plugin/_latestVersion)
 
 ## Usage of generate-sources goal
 
