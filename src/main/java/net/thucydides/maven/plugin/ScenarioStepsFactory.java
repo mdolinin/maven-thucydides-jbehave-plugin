@@ -53,7 +53,7 @@ public class ScenarioStepsFactory extends ThucydidesStepFactory {
         ScenarioStepsClassModel scenarioStepsClassModel = new ScenarioStepsClassModel();
         scenarioStepsClassModel.setPackageName(rootPackage);
         scenarioStepsClassModel.setClassNamePrefix(getClassNameFrom(story.getName()));
-        Set<String> imports = new HashSet<String>();
+        Set<String> imports = new LinkedHashSet<String>();
         Set<FieldsSteps> fieldSteps = new HashSet<FieldsSteps>();
         List<ScenarioMethod> scenarios = new ArrayList<ScenarioMethod>();
         for (Scenario scenario : story.getScenarios()) {

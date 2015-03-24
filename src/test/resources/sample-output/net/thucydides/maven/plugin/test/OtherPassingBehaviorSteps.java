@@ -1,11 +1,11 @@
 package net.thucydides.maven.plugin.test;
 
-import java.util.ArrayList;
-import net.thucydides.maven.plugin.test.example.SimpleException;
-import java.util.List;
-import org.jbehave.core.steps.ParameterConverters.StringListConverter;
-import java.lang.String;
 import net.thucydides.maven.plugin.test.SimpleSteps;
+import java.lang.String;
+import java.util.List;
+import java.util.ArrayList;
+import org.jbehave.core.steps.ParameterConverters.StringListConverter;
+import net.thucydides.maven.plugin.test.example.SimpleException;
 import net.thucydides.core.annotations.Steps;
 import net.thucydides.core.pages.Pages;
 import net.thucydides.core.steps.ScenarioSteps;
