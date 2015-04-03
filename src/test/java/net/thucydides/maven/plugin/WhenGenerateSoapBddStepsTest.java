@@ -4,19 +4,18 @@ import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -26,13 +25,15 @@ public class WhenGenerateSoapBddStepsTest {
     private String expectedPathToFile = "./src/test/java/net/thucydides/maven/plugin/test/example/HelloWorldImplServiceSteps.java";
     GenerateSoapStepsMojo plugin;
     File outputDirectory;
-    private static final String DELIMITER ="\n\n---------------------------------------\n\n";
+    private static final String DELIMITER = "\n\n---------------------------------------\n\n";
+    private volatile boolean testsPassed;
 
-    @Rule
-    public TemporaryFolder temporaryFolder = new TemporaryFolder();
+    public TemporaryFolder temporaryFolder;
 
     @Before
     public void setupPlugin() throws IOException {
+        temporaryFolder = new TemporaryFolder();
+        temporaryFolder.create();
         outputDirectory = temporaryFolder.newFolder("soap-output");
         plugin = new GenerateSoapStepsMojo();
         plugin.setOutputDirectory(new File("./target/generated-test-sources"));
@@ -43,8 +44,17 @@ public class WhenGenerateSoapBddStepsTest {
         plugin.setProject(new MavenProject());
     }
 
+    @After
+    public void removeTmpFolderIfTestsPassed(){
+        if(testsPassed){
+            outputDirectory.delete();
+            temporaryFolder.delete();
+        }
+    }
+
     @Test
     public void generateBddStepsFormSoapCheckNumberLinesInFile() throws IOException {
+        testsPassed =false;
         try {
             plugin.execute();
         } catch (MojoExecutionException e) {
@@ -56,47 +66,44 @@ public class WhenGenerateSoapBddStepsTest {
 
         File actualFile = new File(destinationDirectory, "HelloWorldImplServiceSteps.java");
         File expectedFile = new File(expectedPathToFile);
-        List<String> actualFileContent = FileUtils.readLines(actualFile);
-        List<String> expectedFileContent = FileUtils.readLines(expectedFile);
+        List<String> actualFileContent = removeEmptyLines(FileUtils.readLines(actualFile));
+        List<String> expectedFileContent = removeEmptyLines(FileUtils.readLines(expectedFile));
         assertEquals("Number of lines in files is different", expectedFileContent.size(), actualFileContent.size()); // checks only size
-        assertThatLinesAreEqual(expectedFileContent, actualFileContent);
+        assertThatLinesAreEqual(expectedFileContent, actualFileContent, expectedFile.getAbsolutePath(), actualFile.getAbsolutePath());
+        testsPassed =true;
     }
 
-    private void assertThatLinesAreEqual(List<String> expectedLines, List<String> actualLines) {
+    private void assertThatLinesAreEqual(List<String> expectedLines, List<String> actualLines, String expPath, String actPath) {
         if (!expectedLines.equals(actualLines)) {
             StringBuilder failReport = new StringBuilder();
-            for (int lineNumber = 0; lineNumber < actualLines.size(); lineNumber++) {
-                String actualLine = actualLines.get(lineNumber);
-                String expectedLine = expectedLines.get(lineNumber);
+            for (int index = 0; index < actualLines.size(); index++) {
+                String expectedLine = expectedLines.get(index);
+                String actualLine = actualLines.get(index);
                 if (!actualLine.equals(expectedLine)) {
-                    failReport.append("Failed test for lines equality on line #").append(lineNumber).append("\n")
-                            .append("EXPECTED\n<").append(expectedLine).append(">\nACTUAL\n<").append(actualLine).append(DELIMITER);
-
+                    int fileLine = index + 1;
+                    failReport.append("Failed test for lines equality on line #").append(fileLine).append("\n")
+                            .append("EXPECTED\n<").append(expectedLine).append(">\nACTUAL\n<").append(actualLine).append(">").append(DELIMITER);
                 }
             }
+            failReport.append("Expected file path = ").append(expPath).append("\n")
+                    .append("Actual file path = ").append(actPath);
             throw new AssertionError(failReport);
         }
     }
 
-    private List<String> splitFileByEmptyLines(List<String> fileLines) {
-        List<String> result = new ArrayList<String>();
-        StringBuilder stringBuilder = new StringBuilder();
-        for (String line : fileLines) {
-            if (line.isEmpty()) {
-                result.add(stringBuilder.toString());
-                //clean string builder
-                stringBuilder.setLength(0);
-            } else {
-                stringBuilder.append(line);
+    private List<String> removeEmptyLines(List<String> lines){
+        Iterator<String> iterator = lines.iterator();
+        while (iterator.hasNext()){
+            if (iterator.next().isEmpty()){
+                iterator.remove();
             }
         }
-        //add last line
-        result.add(stringBuilder.toString());
-        return result;
+        return lines;
     }
 
     @Test
     public void generateBddStepsFormSoapCheckClassFiles() throws Exception {
+        testsPassed = false;
         File expectedfile = new File(expectedPathToFile);
         File actualFile = new File(outputDirectory.toURI());
         try {
@@ -114,5 +121,6 @@ public class WhenGenerateSoapBddStepsTest {
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
+        testsPassed = true;
     }
 }

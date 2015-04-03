@@ -21,23 +21,6 @@ public class HelloWorldImplServiceSteps {
 
     public HelloWorld helloWorldField = new HelloWorldImplService().getHelloWorldImplPort();
 
-    @When("get hello world as string '$arg0Key' and save response to $stringKey")
-    public void whenGetHelloWorldAsString(String arg0Key, String stringKey) {
-        String arg0 = null;
-        if (!arg0Key.isEmpty()) {
-            arg0 = getVariableAsString(arg0Key);
-        }
-        String string = helloWorldField.getHelloWorldAsString(arg0);
-        save(stringKey, string);
-    }
-
-    @Then("$actualStringKey string is equal to $expectedStringKey")
-    public void thenString(String actualStringKey, String expectedStringKey) {
-        String actualString = getVariableAsString(actualStringKey);
-        String expectedString = getVariableAsString(expectedStringKey);
-        Assert.assertEquals(actualString, expectedString);
-    }
-
     @When("generate big decimal '$valueKey' and save response to $bigDecimalKey")
     public void whenGenerateBigDecimal(String valueKey, String bigDecimalKey) {
         String value = null;
@@ -265,6 +248,23 @@ public class HelloWorldImplServiceSteps {
             attribute14List.add(person);
         }
         save(attribute14Value, attribute14List);
+    }
+
+    @When("get hello world as string '$arg0Key' and save response to $stringKey")
+    public void whenGetHelloWorldAsString(String arg0Key, String stringKey) {
+        String arg0 = null;
+        if (!arg0Key.isEmpty()) {
+            arg0 = getVariableAsString(arg0Key);
+        }
+        String string = helloWorldField.getHelloWorldAsString(arg0);
+        save(stringKey, string);
+    }
+
+    @Then("$actualStringKey string is equal to $expectedStringKey")
+    public void thenString(String actualStringKey, String expectedStringKey) {
+        String actualString = getVariableAsString(actualStringKey);
+        String expectedString = getVariableAsString(expectedStringKey);
+        Assert.assertEquals(actualString, expectedString);
     }
 
     private void save(String toPutTypeNameKey, Object toPutTypeName) {
