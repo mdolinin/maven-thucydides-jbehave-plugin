@@ -8,6 +8,8 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,11 +20,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class WhenGenerateSoapBddStepsTest {
     private String expectedPathToFile = "./src/test/java/net/thucydides/maven/plugin/test/example/HelloWorldImplServiceSteps.java";
     GenerateSoapStepsMojo plugin;
     File outputDirectory;
+    private static final String DELIMITER ="\n\n---------------------------------------\n\n";
 
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
@@ -54,7 +58,24 @@ public class WhenGenerateSoapBddStepsTest {
         File expectedFile = new File(expectedPathToFile);
         List<String> actualFileContent = FileUtils.readLines(actualFile);
         List<String> expectedFileContent = FileUtils.readLines(expectedFile);
-        assertEquals("Number of lines in files is different", expectedFileContent.size(), actualFileContent.size());
+        assertEquals("Number of lines in files is different", expectedFileContent.size(), actualFileContent.size()); // checks only size
+        assertThatLinesAreEqual(expectedFileContent, actualFileContent);
+    }
+
+    private void assertThatLinesAreEqual(List<String> expectedLines, List<String> actualLines) {
+        if (!expectedLines.equals(actualLines)) {
+            StringBuilder failReport = new StringBuilder();
+            for (int lineNumber = 0; lineNumber < actualLines.size(); lineNumber++) {
+                String actualLine = actualLines.get(lineNumber);
+                String expectedLine = expectedLines.get(lineNumber);
+                if (!actualLine.equals(expectedLine)) {
+                    failReport.append("Failed test for lines equality on line #").append(lineNumber).append("\n")
+                            .append("EXPECTED\n<").append(expectedLine).append(">\nACTUAL\n<").append(actualLine).append(DELIMITER);
+
+                }
+            }
+            throw new AssertionError(failReport);
+        }
     }
 
     private List<String> splitFileByEmptyLines(List<String> fileLines) {
