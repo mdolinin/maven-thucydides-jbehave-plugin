@@ -174,7 +174,7 @@ public class SoapStepsGenerator {
                         } else {
                             //generate given steps for Lists
                             if (parameterClass.equals(List.class)) {
-                                generateGivenStepsForList.generateFor(parameterClass, genericParameterTypeClass, parameterName, parameterKeyName);
+                                generateGivenStepsForList.generateFor(parameterClass, genericParameterTypeClass, parameterName, parameterKeyName, serviceStepsRawClass.name());
                                 givenStepsGenerator.generateFor(genericParameterTypeClass, getVariableName(genericParameterTypeClass), getVariableName(genericParameterTypeClass) + "Key");
                             }
                         }
@@ -205,7 +205,7 @@ public class SoapStepsGenerator {
                     }
                     //generate given steps for Lists
                     if (webServiceResponseClass.equals(List.class)) {
-                        generateGivenStepsForList.generateFor(webServiceResponseClass, genericReturnTypeClass, webServiceResponseTypeName, webServiceResponseTypeNameKey);
+                        generateGivenStepsForList.generateFor(webServiceResponseClass, genericReturnTypeClass, webServiceResponseTypeName, webServiceResponseTypeNameKey, serviceStepsRawClass.name());
                         givenStepsGenerator.generateFor(genericReturnTypeClass, getVariableName(genericReturnTypeClass), getVariableName(genericReturnTypeClass) + "Key");
                     }
 

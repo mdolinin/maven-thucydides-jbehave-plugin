@@ -21,23 +21,6 @@ public class HelloWorldImplServiceSteps {
 
     public HelloWorld helloWorldField = new HelloWorldImplService().getHelloWorldImplPort();
 
-    @When("get hello world as string '$arg0Key' and save response to $stringKey")
-    public void whenGetHelloWorldAsString(String arg0Key, String stringKey) {
-        String arg0 = null;
-        if (!arg0Key.isEmpty()) {
-            arg0 = getVariableAsString(arg0Key);
-        }
-        String string = helloWorldField.getHelloWorldAsString(arg0);
-        save(stringKey, string);
-    }
-
-    @Then("$actualStringKey string is equal to $expectedStringKey")
-    public void thenString(String actualStringKey, String expectedStringKey) {
-        String actualString = getVariableAsString(actualStringKey);
-        String expectedString = getVariableAsString(expectedStringKey);
-        Assert.assertEquals(actualString, expectedString);
-    }
-
     @When("generate big decimal '$valueKey' and save response to $bigDecimalKey")
     public void whenGenerateBigDecimal(String valueKey, String bigDecimalKey) {
         String value = null;
@@ -211,7 +194,7 @@ public class HelloWorldImplServiceSteps {
         save(parameterKey, parameter);
     }
 
-    @Given("list string $stringKeys and save to $attribute1Value")
+    @Given("list string $stringKeys and save to $attribute1Value - hello world impl service")
     public void givenListString(List<String> stringKeys, String attribute1Value) {
         List<String> attribute1List = new ArrayList<String>();
         for (String stringKey: stringKeys) {
@@ -239,7 +222,7 @@ public class HelloWorldImplServiceSteps {
         save(address, addressValue);
     }
 
-    @Given("list address $addressKeys and save to $addressValue")
+    @Given("list address $addressKeys and save to $addressValue - hello world impl service")
     public void givenListAddress(List<String> addressKeys, String addressValue) {
         List<Address> addressList = new ArrayList<Address>();
         for (String addressKey: addressKeys) {
@@ -257,7 +240,7 @@ public class HelloWorldImplServiceSteps {
         }
     }
 
-    @Given("list person $personKeys and save to $attribute14Value")
+    @Given("list person $personKeys and save to $attribute14Value - hello world impl service")
     public void givenListPerson(List<String> personKeys, String attribute14Value) {
         List<Person> attribute14List = new ArrayList<Person>();
         for (String personKey: personKeys) {
@@ -265,6 +248,23 @@ public class HelloWorldImplServiceSteps {
             attribute14List.add(person);
         }
         save(attribute14Value, attribute14List);
+    }
+
+    @When("get hello world as string '$arg0Key' and save response to $stringKey")
+    public void whenGetHelloWorldAsString(String arg0Key, String stringKey) {
+        String arg0 = null;
+        if (!arg0Key.isEmpty()) {
+            arg0 = getVariableAsString(arg0Key);
+        }
+        String string = helloWorldField.getHelloWorldAsString(arg0);
+        save(stringKey, string);
+    }
+
+    @Then("$actualStringKey string is equal to $expectedStringKey")
+    public void thenString(String actualStringKey, String expectedStringKey) {
+        String actualString = getVariableAsString(actualStringKey);
+        String expectedString = getVariableAsString(expectedStringKey);
+        Assert.assertEquals(actualString, expectedString);
     }
 
     private void save(String toPutTypeNameKey, Object toPutTypeName) {

@@ -25,7 +25,7 @@ public class GenerateGivenStepsForList {
         this.serviceStepsRawClass = serviceStepsRawClass;
     }
 
-    public void generateFor(Class<?> rawClass, Class<?> genericClass, String name, String key) {
+    public void generateFor(Class<?> rawClass, Class<?> genericClass, String name, String key, String serviceClassName) {
         if (types.contains(genericClass)) {
             return;
         }
@@ -76,7 +76,7 @@ public class GenerateGivenStepsForList {
         jForEach.body().add(typeLocalVar.invoke("add").arg(JExpr.ref(localVarGenericTypeName)));
 
         //add save to part to annotation
-        stepPattern += " and save to $" + key;
+        stepPattern += " and save to $" + key + getClassNameLikeString(serviceClassName);
         //add response key to method
         givenMethod.param(String.class, key);
 
@@ -97,6 +97,15 @@ public class GenerateGivenStepsForList {
             }
         }
         return xmlTypeName.isEmpty() ? getVariableName(clazz) : xmlTypeName;
+    }
+
+    private String getClassNameLikeString(String className) {
+        String[] strings = StringUtils.splitByCharacterTypeCamelCase(className);
+        String result = " -";
+        for (int i = 0; i < strings.length - 1; i++) {
+            result += " " + strings[i].toLowerCase();
+        }
+        return result;
     }
 
 }

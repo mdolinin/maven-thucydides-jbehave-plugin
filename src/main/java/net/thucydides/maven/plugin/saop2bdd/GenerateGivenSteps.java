@@ -126,7 +126,7 @@ public class GenerateGivenSteps {
                     generateFor(fieldGenericClass, fieldNameValue, fieldName);
                     //generate given steps for Lists
                     if (fieldClass.equals(List.class)) {
-                        generateGivenStepsForList.generateFor(fieldClass, fieldGenericClass, fieldName + "List", fieldName + "Value");
+                        generateGivenStepsForList.generateFor(fieldClass, fieldGenericClass, fieldName + "List", fieldName + "Value", serviceStepsRawClass.name());
                     }
                 }
                 //add setter call to when method body
@@ -185,7 +185,7 @@ public class GenerateGivenSteps {
                     generateFor(fieldGenericClass, localVariableParameterName, fieldName);
                     //generate given steps for Lists
                     if (fieldClass.equals(List.class)) {
-                        generateGivenStepsForList.generateFor(fieldClass, fieldGenericClass, localVariableParameterName, fieldName);
+                        generateGivenStepsForList.generateFor(fieldClass, fieldGenericClass, localVariableParameterName, fieldName, serviceStepsRawClass.name());
                     }
                 }
                 stepPattern += " '$" + fieldName + "'";
