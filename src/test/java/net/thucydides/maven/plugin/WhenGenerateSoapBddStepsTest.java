@@ -76,8 +76,6 @@ public class WhenGenerateSoapBddStepsTest {
         char[] expectedChars = expected.toCharArray();
         Arrays.sort(actualChars);
         Arrays.sort(expectedChars);
-        System.out.println(actualChars);
-        System.out.println(expectedChars);
         assertArrayEquals("Files is different", expectedChars, actualChars);
     }
 
