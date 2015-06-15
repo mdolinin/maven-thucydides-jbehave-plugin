@@ -21,80 +21,21 @@ public class HelloWorldImplServiceSteps {
 
     public HelloWorld helloWorldField = new HelloWorldImplService().getHelloWorldImplPort();
 
-    @When("generate big decimal '$valueKey' and save response to $bigDecimalKey")
-    public void whenGenerateBigDecimal(String valueKey, String bigDecimalKey) {
-        String value = null;
-        if (!valueKey.isEmpty()) {
-            value = getVariableAsString(valueKey);
+    @When("get hello world as string '$arg0Key' and save response to $stringKey")
+    public void whenGetHelloWorldAsString(String arg0Key, String stringKey) {
+        String arg0 = null;
+        if (!arg0Key.isEmpty()) {
+            arg0 = getVariableAsString(arg0Key);
         }
-        BigDecimal bigDecimal = helloWorldField.generateBigDecimal(value);
-        save(bigDecimalKey, bigDecimal);
+        String string = helloWorldField.getHelloWorldAsString(arg0);
+        save(stringKey, string);
     }
 
-    @Then("$actualBigDecimalKey big decimal is equal to $expectedBigDecimalKey")
-    public void thenBigDecimal(String actualBigDecimalKey, String expectedBigDecimalKey) {
-        BigDecimal actualBigDecimal = getVariableAsBigDecimal(actualBigDecimalKey);
-        BigDecimal expectedBigDecimal = getVariableAsBigDecimal(expectedBigDecimalKey);
-        Assert.assertThat(actualBigDecimal, Matchers.comparesEqualTo(expectedBigDecimal));
-    }
-
-    @When("generate x m l gregorian calendar '$valueKey' and save response to $xMLGregorianCalendarKey")
-    public void whenGenerateXMLGregorianCalendar(String valueKey, String xMLGregorianCalendarKey) {
-        String value = null;
-        if (!valueKey.isEmpty()) {
-            value = getVariableAsString(valueKey);
-        }
-        XMLGregorianCalendar xMLGregorianCalendar = helloWorldField.generateXMLGregorianCalendar(value);
-        save(xMLGregorianCalendarKey, xMLGregorianCalendar);
-    }
-
-    @Given("x m l gregorian calendar and save to $xMLGregorianCalendarKey - hello world impl service")
-    public void givenXMLGregorianCalendar(String xMLGregorianCalendarKey)
-        throws DatatypeConfigurationException
-    {
-        XMLGregorianCalendar xMLGregorianCalendar = (DatatypeFactory.newInstance().newXMLGregorianCalendar());
-        save(xMLGregorianCalendarKey, xMLGregorianCalendar);
-    }
-
-    @Then("$actualXMLGregorianCalendarKey x m l gregorian calendar is equal to $expectedXMLGregorianCalendarKey")
-    public void thenXMLGregorianCalendar(String actualXMLGregorianCalendarKey, String expectedXMLGregorianCalendarKey)
-        throws DatatypeConfigurationException
-    {
-        XMLGregorianCalendar actualXMLGregorianCalendar = getVariableAsXMLGregorianCalendar(actualXMLGregorianCalendarKey);
-        XMLGregorianCalendar expectedXMLGregorianCalendar = getVariableAsXMLGregorianCalendar(expectedXMLGregorianCalendarKey);
-        Assert.assertEquals(actualXMLGregorianCalendar, expectedXMLGregorianCalendar);
-    }
-
-    @When("generate integer1 and save response to $integerKey")
-    public void whenGenerateInteger1(String integerKey) {
-        Integer integer = helloWorldField.generateInteger1();
-        save(integerKey, integer);
-    }
-
-    @Then("$actualIntegerKey integer is equal to $expectedIntegerKey")
-    public void thenInteger(String actualIntegerKey, String expectedIntegerKey) {
-        Integer actualInteger = getVariableAsInteger(actualIntegerKey);
-        Integer expectedInteger = getVariableAsInteger(expectedIntegerKey);
-        Assert.assertEquals(actualInteger, expectedInteger);
-    }
-
-    @When("generate integer2 and save response to $integerKey")
-    public void whenGenerateInteger2(String integerKey) {
-        Integer integer = helloWorldField.generateInteger2();
-        save(integerKey, integer);
-    }
-
-    @When("generate big integer and save response to $bigIntegerKey")
-    public void whenGenerateBigInteger(String bigIntegerKey) {
-        BigInteger bigInteger = helloWorldField.generateBigInteger();
-        save(bigIntegerKey, bigInteger);
-    }
-
-    @Then("$actualBigIntegerKey big integer is equal to $expectedBigIntegerKey")
-    public void thenBigInteger(String actualBigIntegerKey, String expectedBigIntegerKey) {
-        BigInteger actualBigInteger = getVariableAsBigInteger(actualBigIntegerKey);
-        BigInteger expectedBigInteger = getVariableAsBigInteger(expectedBigIntegerKey);
-        Assert.assertEquals(actualBigInteger, expectedBigInteger);
+    @Then("$actualStringKey string is equal to $expectedStringKey")
+    public void thenString(String actualStringKey, String expectedStringKey) {
+        String actualString = getVariableAsString(actualStringKey);
+        String expectedString = getVariableAsString(expectedStringKey);
+        Assert.assertEquals(actualString, expectedString);
     }
 
     @When("generate person instance '$parameterKey' and save response to $voidValueKey")
@@ -108,7 +49,7 @@ public class HelloWorldImplServiceSteps {
 
     @Given("person saved to '$parameterKey - hello world impl service' with parameters: $parameters")
     public void givenPerson(String parameterKey, ExamplesTable parameters)
-        throws DatatypeConfigurationException
+            throws DatatypeConfigurationException
     {
         Person parameter = new Person();
         if (parameters.getRows().size()!= 1) {
@@ -240,6 +181,14 @@ public class HelloWorldImplServiceSteps {
         }
     }
 
+    @Given("x m l gregorian calendar and save to $attribute12 - hello world impl service")
+    public void givenXMLGregorianCalendar(String attribute12)
+            throws DatatypeConfigurationException
+    {
+        XMLGregorianCalendar attribute12Value = (DatatypeFactory.newInstance().newXMLGregorianCalendar());
+        save(attribute12, attribute12Value);
+    }
+
     @Given("list person $personKeys and save to $attribute14Value - hello world impl service")
     public void givenListPerson(List<String> personKeys, String attribute14Value) {
         List<Person> attribute14List = new ArrayList<Person>();
@@ -250,21 +199,73 @@ public class HelloWorldImplServiceSteps {
         save(attribute14Value, attribute14List);
     }
 
-    @When("get hello world as string '$arg0Key' and save response to $stringKey")
-    public void whenGetHelloWorldAsString(String arg0Key, String stringKey) {
-        String arg0 = null;
-        if (!arg0Key.isEmpty()) {
-            arg0 = getVariableAsString(arg0Key);
-        }
-        String string = helloWorldField.getHelloWorldAsString(arg0);
-        save(stringKey, string);
+    @When("generate big integer and save response to $bigIntegerKey")
+    public void whenGenerateBigInteger(String bigIntegerKey) {
+        BigInteger bigInteger = helloWorldField.generateBigInteger();
+        save(bigIntegerKey, bigInteger);
     }
 
-    @Then("$actualStringKey string is equal to $expectedStringKey")
-    public void thenString(String actualStringKey, String expectedStringKey) {
-        String actualString = getVariableAsString(actualStringKey);
-        String expectedString = getVariableAsString(expectedStringKey);
-        Assert.assertEquals(actualString, expectedString);
+    @Then("$actualBigIntegerKey big integer is equal to $expectedBigIntegerKey")
+    public void thenBigInteger(String actualBigIntegerKey, String expectedBigIntegerKey) {
+        BigInteger actualBigInteger = getVariableAsBigInteger(actualBigIntegerKey);
+        BigInteger expectedBigInteger = getVariableAsBigInteger(expectedBigIntegerKey);
+        Assert.assertEquals(actualBigInteger, expectedBigInteger);
+    }
+
+    @When("generate big decimal '$valueKey' and save response to $bigDecimalKey")
+    public void whenGenerateBigDecimal(String valueKey, String bigDecimalKey) {
+        String value = null;
+        if (!valueKey.isEmpty()) {
+            value = getVariableAsString(valueKey);
+        }
+        BigDecimal bigDecimal = helloWorldField.generateBigDecimal(value);
+        save(bigDecimalKey, bigDecimal);
+    }
+
+    @Then("$actualBigDecimalKey big decimal is equal to $expectedBigDecimalKey")
+    public void thenBigDecimal(String actualBigDecimalKey, String expectedBigDecimalKey) {
+        BigDecimal actualBigDecimal = getVariableAsBigDecimal(actualBigDecimalKey);
+        BigDecimal expectedBigDecimal = getVariableAsBigDecimal(expectedBigDecimalKey);
+        Assert.assertThat(actualBigDecimal, Matchers.comparesEqualTo
+                (expectedBigDecimal));
+    }
+
+    @When("generate x m l gregorian calendar '$valueKey' and save response to $xMLGregorianCalendarKey")
+    public void whenGenerateXMLGregorianCalendar(String valueKey, String xMLGregorianCalendarKey) {
+        String value = null;
+        if (!valueKey.isEmpty()) {
+            value = getVariableAsString(valueKey);
+        }
+        XMLGregorianCalendar xMLGregorianCalendar = helloWorldField.generateXMLGregorianCalendar(value);
+        save(xMLGregorianCalendarKey, xMLGregorianCalendar);
+    }
+
+    @Then("$actualXMLGregorianCalendarKey x m l gregorian calendar is equal to $expectedXMLGregorianCalendarKey")
+    public void thenXMLGregorianCalendar(String actualXMLGregorianCalendarKey, String expectedXMLGregorianCalendarKey)
+            throws DatatypeConfigurationException
+    {
+        XMLGregorianCalendar actualXMLGregorianCalendar = getVariableAsXMLGregorianCalendar(actualXMLGregorianCalendarKey);
+        XMLGregorianCalendar expectedXMLGregorianCalendar = getVariableAsXMLGregorianCalendar(expectedXMLGregorianCalendarKey);
+        Assert.assertEquals(actualXMLGregorianCalendar, expectedXMLGregorianCalendar);
+    }
+
+    @When("generate integer1 and save response to $integerKey")
+    public void whenGenerateInteger1(String integerKey) {
+        Integer integer = helloWorldField.generateInteger1();
+        save(integerKey, integer);
+    }
+
+    @Then("$actualIntegerKey integer is equal to $expectedIntegerKey")
+    public void thenInteger(String actualIntegerKey, String expectedIntegerKey) {
+        Integer actualInteger = getVariableAsInteger(actualIntegerKey);
+        Integer expectedInteger = getVariableAsInteger(expectedIntegerKey);
+        Assert.assertEquals(actualInteger, expectedInteger);
+    }
+
+    @When("generate integer2 and save response to $integerKey")
+    public void whenGenerateInteger2(String integerKey) {
+        Integer integer = helloWorldField.generateInteger2();
+        save(integerKey, integer);
     }
 
     private void save(String toPutTypeNameKey, Object toPutTypeName) {
@@ -332,7 +333,7 @@ public class HelloWorldImplServiceSteps {
     }
 
     private XMLGregorianCalendar getVariableAsXMLGregorianCalendar(String key)
-        throws DatatypeConfigurationException
+            throws DatatypeConfigurationException
     {
         try {
             return ((XMLGregorianCalendar) Thucydides.getCurrentSession().get(key));
