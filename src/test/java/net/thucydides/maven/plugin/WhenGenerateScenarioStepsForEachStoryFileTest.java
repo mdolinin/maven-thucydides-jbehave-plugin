@@ -52,7 +52,7 @@ public class WhenGenerateScenarioStepsForEachStoryFileTest {
         plugin.execute();
         File destinationDirectory = new File(outputDirectory, plugin.packageForScenarioSteps.replaceAll("\\.", "/"));
         String[] generatedFileNames = destinationDirectory.list(javaFiles());
-        assertThat(generatedFileNames).hasSize(2);
+        assertThat(generatedFileNames).hasSize(3);
         for(String fileName : generatedFileNames) {
             File actualFile = new File(destinationDirectory, fileName);
             File expectedFile = new File(expectedFilesDirectory, fileName);

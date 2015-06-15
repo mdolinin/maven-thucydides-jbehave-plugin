@@ -97,9 +97,12 @@ public class GenerateThucydidesJUnitStoriesMojo extends AbstractMojo {
 
     private void generateStubFromStoryFile(File story) throws MojoExecutionException {
         String className = getClassNameFrom(story.getName());
+        String relative = storiesDirectory.toURI()
+                .relativize(story.getParentFile()
+                        .toURI()).getPath();
         String classText = createThucydidesJunitStoryFor(className);
         try {
-            createJavaClass(className, classText);
+            createJavaClass(className, classText, relative);
             moveResource();
         } catch (IOException e) {
             throw new MojoExecutionException("Error creating file " + className, e);
@@ -162,8 +165,15 @@ public class GenerateThucydidesJUnitStoriesMojo extends AbstractMojo {
         return file.contains(".jar!/");
     }
 
-    private void createJavaClass(String name, String text) throws IOException {
-        File pd = new File(outputDirectory, packageForStoryStubs.replaceAll("\\.", "/"));
+    private void createJavaClass(String name, String text, String relative) throws IOException {
+        File output = outputDirectory;
+        if (!relative.isEmpty()) {
+            final File relDir = new File(outputDirectory, relative);
+            if (relDir.mkdirs()) {
+                output = relDir;
+            }
+        }
+        File pd = new File(output, packageForStoryStubs.replaceAll("\\.", "/"));
         pd.mkdirs();
         FileWriter out = new FileWriter(new File(pd, name + "IT" + ".java"));
         try {

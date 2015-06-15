@@ -48,6 +48,15 @@ public class WhenGenerateJUnitStoriesForEachStoryFileTest {
         }
     }
 
+    @Test
+    public void should_create_junit_stories_class_with_relative_dir_structure() throws MojoExecutionException, IOException {
+        plugin.execute();
+        File destinationDirectory = new File(outputDirectory, "capability/feature/"
+                + plugin.packageForStoryStubs.replaceAll("\\.", "/"));
+        String[] generatedFileNames = destinationDirectory.list(javaFiles());
+        assertThat(generatedFileNames).hasSize(1);
+    }
+
     private FilenameFilter javaFiles() {
         return new FilenameFilter() {
 
