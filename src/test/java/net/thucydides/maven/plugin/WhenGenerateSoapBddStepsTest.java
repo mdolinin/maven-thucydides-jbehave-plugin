@@ -70,12 +70,14 @@ public class WhenGenerateSoapBddStepsTest {
         File expectedFile = new File(expectedPathToFile);
         String actual = FileUtils.readFileToString(actualFile);
         String expected = FileUtils.readFileToString(expectedFile);
-        actual = actual.replaceAll("[ \n\\d]", "");
-        expected = expected.replaceAll("[ \n\\d]", "");
+        actual = actual.replaceAll("[ \n]", "");
+        expected = expected.replaceAll("[ \n]", "");
         char[] actualChars = actual.toCharArray();
         char[] expectedChars = expected.toCharArray();
         Arrays.sort(actualChars);
         Arrays.sort(expectedChars);
+        System.out.println(actualChars);
+        System.out.println(expectedChars);
         assertArrayEquals("Files is different", expectedChars, actualChars);
     }
 
