@@ -169,7 +169,7 @@ public class GenerateThucydidesJUnitStoriesMojo extends AbstractMojo {
         File output = outputDirectory;
         if (!relative.isEmpty()) {
             final File relDir = new File(outputDirectory, relative);
-            if (relDir.mkdirs()) {
+            if (relDir.exists() || relDir.mkdirs()) {
                 output = relDir;
             }
         }
