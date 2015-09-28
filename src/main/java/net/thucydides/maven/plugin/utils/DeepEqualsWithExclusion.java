@@ -1,6 +1,7 @@
 package net.thucydides.maven.plugin.utils;
 
 import org.apache.commons.lang3.ClassUtils;
+import org.apache.commons.lang3.builder.CompareToBuilder;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.lang.reflect.InvocationTargetException;
@@ -9,6 +10,8 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -120,6 +123,16 @@ public class DeepEqualsWithExclusion {
                 List actList = (List) currentMethod.invoke(actualResponse);
                 List expList = (List) currentMethod.invoke(expectedResponse);
 
+                Comparator c = new Comparator() {
+                    @Override
+                    public int compare(Object o1, Object o2) {
+                        return CompareToBuilder.reflectionCompare(o1, o2);
+                    }
+                };
+
+                Collections.sort(actList, c);
+                Collections.sort(expList, c);
+
                 if (actList.isEmpty() && expList.isEmpty()) {
                     return;
                 }
@@ -180,7 +193,7 @@ public class DeepEqualsWithExclusion {
 
     private void writeAssertMessage(Method method, int row, Object actualValue, Object expectValue) {
         String simpleName = method.getReturnType().getSimpleName();
-        String msg = getFieldName(method) + "in " + simpleName + " row " + row;
+        String msg = getFieldName(method) + " in " + simpleName + " row " + row;
         expectedData.put(msg, String.valueOf(expectValue));
         actualData.put(msg, String.valueOf(actualValue));
     }
